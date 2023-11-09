@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 #[derive(Component)]
-struct Player;
+pub struct Player;
 
 fn spawn_player(
     mut commands: Commands,
@@ -32,14 +32,31 @@ fn move_player(
     }
 
     let mut movement = Vec3::ZERO;
-
-    if res_keyboard_input.pressed(KeyCode::W) { movement.y += 200.0 }
-    if res_keyboard_input.pressed(KeyCode::A) { movement.x -= 200.0 }
-    if res_keyboard_input.pressed(KeyCode::S) { movement.y -= 200.0 }
-    if res_keyboard_input.pressed(KeyCode::D) { movement.x += 200.0 }
-
     let mut player_path = player_query.single_mut();
+
+    if res_keyboard_input.pressed(KeyCode::W) { movement.y += player_path.velocity }
+    if res_keyboard_input.pressed(KeyCode::A) { movement.x -= player_path.velocity }
+    if res_keyboard_input.pressed(KeyCode::S) { movement.y -= player_path.velocity }
+    if res_keyboard_input.pressed(KeyCode::D) { movement.x += player_path.velocity }
+
     player_path.movement = movement * res_time.delta_seconds();
+}
+
+fn rotate_player_to_cursor(
+    mut player_query: Query<&mut Transform, With<Player>>,
+    res_cursor_position: Res<crate::interface::CursorCoordinates>,
+) {
+    if let Err(_) = player_query.get_single() {
+        return;
+    }
+
+    let mut player_transform = player_query.single_mut();
+    let angle = crate::common::get_angle(
+        player_transform.translation,
+        res_cursor_position.0,
+    );
+
+    player_transform.rotation = Quat::from_rotation_z(angle);
 }
 
 pub struct PlayerPlugin;
@@ -48,6 +65,6 @@ impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app
             .add_systems(Startup, spawn_player)
-            .add_systems(Update, move_player);
+            .add_systems(Update, (move_player, rotate_player_to_cursor));
     }
 }

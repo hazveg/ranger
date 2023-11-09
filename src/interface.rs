@@ -24,6 +24,5 @@ pub fn update_cursor_position(
         .map(|ray| ray.origin.truncate())
     {
         res_cursor_coordinates.0 = world_coordinates.extend(0.0);
-        println!("{}", res_cursor_coordinates.0);
     }
 }
