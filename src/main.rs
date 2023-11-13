@@ -3,7 +3,6 @@ use bevy::prelude::*;
 pub mod common;
 pub mod actor;
 pub mod interface;
-pub mod gameplay;
 pub mod ai;
 
 fn init(
@@ -19,7 +18,6 @@ fn main() {
         .add_plugins(DefaultPlugins)
         .add_plugins((
             actor::ActorPlugin,
-            gameplay::GameplayPlugin,
         ))
         .insert_resource(common::DebugTimer(Timer::from_seconds(1.5, TimerMode::Repeating)))
         .insert_resource(interface::CursorCoordinates(Vec3::ZERO))
