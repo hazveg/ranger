@@ -1,9 +1,10 @@
 use bevy::prelude::*;
 
-pub mod common;
-pub mod actor;
-pub mod interface;
-pub mod ai;
+mod common;
+mod actor;
+mod interface;
+mod physics;
+mod ai;
 
 fn init(
     mut commands: Commands,
@@ -26,6 +27,7 @@ fn main() {
         )
         .add_plugins((
             actor::ActorPlugin,
+            physics::PhysicsPlugin,
         ))
         .insert_resource(common::DebugTimer(Timer::from_seconds(1.5, TimerMode::Repeating)))
         .insert_resource(interface::CursorCoordinates(Vec3::ZERO))

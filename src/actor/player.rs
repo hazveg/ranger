@@ -1,24 +1,29 @@
 use bevy::prelude::*;
+use crate::physics::aabb::*;
 
 #[derive(Component)]
 pub struct Player;
+
+const PLAYER_SIZE: Vec2 = Vec2::new(100.0, 100.0);
+
 
 fn spawn_player(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
 ) {
     commands.spawn((
+        Player,
+        AABB::new(Vec3::ZERO, PLAYER_SIZE),
+        crate::actor::Health(100.0),
+        crate::common::Path::new(),
         SpriteBundle {
             sprite: Sprite {
-                custom_size: Some(Vec2::new(100.0, 100.0)),
+                custom_size: Some(PLAYER_SIZE),
                 ..default()
             },
             texture: asset_server.load("sprites/sussy.png"),
             ..default()
         },
-        Player,
-        crate::common::Path::new(),
-        crate::actor::Health(100.0),
     ));
 }
 
@@ -58,12 +63,26 @@ fn rotate_player_to_cursor(
     player_transform.rotation = Quat::from_rotation_z(angle);
 }
 
+fn debug_player_bounding_box(
+    player_query: Query<&AABB, With<Player>>,
+    mut gizmos: Gizmos,
+) {
+    if let Err(_) = player_query.get_single() {
+        return;
+    }
+
+    let player_aabb = player_query.single();
+    player_aabb.outline(&mut gizmos);
+}
+
+
 pub struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app
             .add_systems(Startup, spawn_player)
+            .add_systems(Update, debug_player_bounding_box)
             .add_systems(Update, (move_player, rotate_player_to_cursor));
     }
 }
