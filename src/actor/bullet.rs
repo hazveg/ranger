@@ -44,7 +44,7 @@ fn spawn_bullets(
         ),
         SpriteBundle {
             texture: res_asset_server.load("sprites/sussy.png"),
-            transform: Transform::from_translation(player_query.single().translation),
+            transform: *player_query.single(),
             ..default()
         },
     ));
@@ -58,10 +58,9 @@ fn lower_bullet_velocity(
     for (mut path, bullet_dropoff) in bullet_query.iter_mut() {
         path.velocity -= 0.0025 * bullet_dropoff.0 as f32 * bullet_dropoff.0 as f32;
         
+        // The borrow checker is the bane of my existance
         let velocity = path.velocity;
-
         path.movement *= velocity;
-        println!("{}", path.movement);
     }
 }
 

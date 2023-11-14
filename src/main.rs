@@ -15,7 +15,15 @@ fn init(
 
 fn main() {
     App::new()
-        .add_plugins(DefaultPlugins)
+        .add_plugins(DefaultPlugins.set(WindowPlugin {
+            primary_window: Some(Window {
+                resizable: false,
+                ..default()
+                }),
+            ..default()
+            })
+            .build(),
+        )
         .add_plugins((
             actor::ActorPlugin,
         ))
