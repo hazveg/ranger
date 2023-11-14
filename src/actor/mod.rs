@@ -2,6 +2,7 @@ use bevy::{prelude::*, window::PrimaryWindow};
 use crate::physics::aabb::*;
 
 pub mod player;
+pub mod basic_enemy;
 pub mod bullet;
 
 #[derive(Component)]
@@ -61,6 +62,7 @@ impl Plugin for ActorPlugin {
             .add_plugins((
                 player::PlayerPlugin,
                 bullet::BulletPlugin,
+                basic_enemy::EnemyPlugin,
             ))
             .add_systems(Update, (
                 move_actors,

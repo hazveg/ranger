@@ -16,13 +16,15 @@ fn init(
 
 fn main() {
     App::new()
-        .add_plugins(DefaultPlugins.set(WindowPlugin {
-            primary_window: Some(Window {
-                resizable: false,
-                ..default()
+        .add_plugins(DefaultPlugins
+            .set(WindowPlugin {
+                primary_window: Some(Window {
+                    resizable: false,
+                    ..default()
                 }),
-            ..default()
+                ..default()
             })
+            .set(ImagePlugin::default_nearest())
             .build(),
         )
         .add_plugins((

@@ -4,8 +4,8 @@ use crate::physics::aabb::*;
 #[derive(Component)]
 pub struct Player;
 
-const PLAYER_SIZE: Vec2 = Vec2::new(100.0, 100.0);
 
+const PLAYER_SIZE: Vec2 = Vec2::new(100.0, 100.0);
 
 fn spawn_player(
     mut commands: Commands,
