@@ -1,10 +1,11 @@
 use bevy::prelude::*;
+use crate::physics::aabb::AABB;
 
 #[derive(Component)]
 struct Bullet;
 
 #[derive(Component)]
-struct BulletDropoff(usize);
+struct BulletDropoff(f32);
 
 
 #[derive(Resource, Default)]
@@ -36,13 +37,18 @@ fn spawn_bullets(
 
     commands.spawn((
         Bullet,
-        BulletDropoff(1),
+        AABB::new(player_query.single().translation, Vec2::splat(10.0)),
+        BulletDropoff(0.0),
         crate::common::Path::steering(
             &player_query.single().translation,
             &res_cursor_coordinates.0,
-            3000.0,
+            6000.0,
         ),
         SpriteBundle {
+            sprite: Sprite {
+                custom_size: Some(Vec2::splat(10.0)),
+                ..default()
+            },
             texture: res_asset_server.load("sprites/sussy.png"),
             transform: *player_query.single(),
             ..default()
@@ -53,10 +59,13 @@ fn spawn_bullets(
 }
 
 fn lower_bullet_velocity(
-    mut bullet_query: Query<(&mut crate::common::Path, &BulletDropoff), With<Bullet>>,
+    mut bullet_query: Query<(&mut crate::common::Path, &mut BulletDropoff), With<Bullet>>,
+    res_time: Res<Time>,
 ) {
-    for (mut path, bullet_dropoff) in bullet_query.iter_mut() {
-        path.velocity -= 0.0025 * bullet_dropoff.0 as f32 * bullet_dropoff.0 as f32;
+    for (mut path, mut bullet_dropoff) in bullet_query.iter_mut() {
+        path.velocity -= res_time.delta_seconds() * bullet_dropoff.0 * bullet_dropoff.0;
+
+        bullet_dropoff.0 += 0.05;
         
         // The borrow checker is the bane of my existance
         let velocity = path.velocity;
@@ -69,7 +78,7 @@ fn remove_stopped_bullets(
     mut commands: Commands,
 ) {
     for (path, entity) in bullet_query.iter() {
-        if path.movement.x.abs() > 75.0 || path.movement.y.abs() > 75.0 {
+        if path.velocity > 0.0 {
             continue;
         }
 

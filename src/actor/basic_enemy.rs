@@ -8,7 +8,7 @@ pub struct EnemySpawnTimer(pub Timer);
 pub struct BasicEnemy;
 
 
-const BASIC_ENEMY_SIZE: Vec2 = Vec2::new(100.0, 100.0);
+const BASIC_ENEMY_SIZE: Vec2 = Vec2::new(50.0, 50.0);
 
 fn spawn_enemy(
     mut commands: Commands,
