@@ -1,71 +1,65 @@
 use bevy::prelude::*;
 use crate::physics::aabb::AABB;
 
+#[derive(Event)]
+pub struct ShotFired {
+    pub sender: Entity,
+    pub sender_transform: Transform,
+    pub target: Vec3,
+}
+
 #[derive(Component)]
 struct Bullet;
 
 #[derive(Component)]
-struct BulletDropoff(f32);
+struct BulletSpecs {
+    dropoff: f32,
+    sender: Entity,
+}
 
-
-#[derive(Resource, Default)]
-// The cooldown needs to be dynamic, so no Timer
-struct ShootCooldown(f32);
+impl BulletSpecs {
+    fn new(sender: Entity) -> BulletSpecs {
+        Self { dropoff: 0.0, sender }
+    }
+}
 
 
 fn spawn_bullets(
-    player_query: Query<&Transform, With<crate::actor::player::Player>>,
     mut commands: Commands,
-    res_mouse_input: Res<Input<MouseButton>>,
-    res_cursor_coordinates: Res<crate::interface::CursorCoordinates>,
-    mut res_shoot_cooldown: ResMut<ShootCooldown>,
     res_asset_server: Res<AssetServer>,
-    res_time: Res<Time>,
+    mut ev_shot_fired: EventReader<ShotFired>,
 ) {
-    if res_shoot_cooldown.0 > 0.0 {
-        res_shoot_cooldown.0 -= res_time.delta_seconds();
-        return;
-    }
-
-    if !res_mouse_input.just_pressed(MouseButton::Left) {
-        return;
-    }
-
-    if let Err(_) = player_query.get_single() {
-        return;
-    }
-
-    commands.spawn((
-        Bullet,
-        AABB::new(player_query.single().translation, Vec2::splat(10.0)),
-        BulletDropoff(0.0),
-        crate::common::Path::steering(
-            &player_query.single().translation,
-            &res_cursor_coordinates.0,
-            6000.0,
-        ),
-        SpriteBundle {
-            sprite: Sprite {
-                custom_size: Some(Vec2::splat(10.0)),
+    for shot_event in ev_shot_fired.read() {
+        commands.spawn((
+            Bullet,
+            AABB::new(shot_event.sender_transform.translation, Vec2::splat(10.0)),
+            BulletSpecs::new(shot_event.sender),
+            crate::common::Path::steering(
+                &shot_event.sender_transform.translation,
+                &shot_event.target,
+                6000.0,
+            ),
+            SpriteBundle {
+                sprite: Sprite {
+                    custom_size: Some(Vec2::splat(10.0)),
+                    ..default()
+                },
+                texture: res_asset_server.load("sprites/sussy.png"),
+                transform: shot_event.sender_transform,
                 ..default()
             },
-            texture: res_asset_server.load("sprites/sussy.png"),
-            transform: *player_query.single(),
-            ..default()
-        },
-    ));
-
-    res_shoot_cooldown.0 = 0.1;
+        ));
+    }
 }
 
 fn lower_bullet_velocity(
-    mut bullet_query: Query<(&mut crate::common::Path, &mut BulletDropoff), With<Bullet>>,
+    mut bullet_query: Query<(&mut crate::common::Path, &mut BulletSpecs), With<Bullet>>,
     res_time: Res<Time>,
 ) {
-    for (mut path, mut bullet_dropoff) in bullet_query.iter_mut() {
-        path.velocity -= res_time.delta_seconds() * bullet_dropoff.0 * bullet_dropoff.0;
+    for (mut path, mut bullet_specs) in bullet_query.iter_mut() {
+        path.velocity -= res_time.delta_seconds() * bullet_specs.dropoff * bullet_specs.dropoff;
 
-        bullet_dropoff.0 += 0.05;
+        bullet_specs.dropoff += 0.05;
         
         // The borrow checker is the bane of my existance
         let velocity = path.velocity;
@@ -92,7 +86,7 @@ pub struct BulletPlugin;
 impl Plugin for BulletPlugin {
     fn build(&self, app: &mut App) {
         app
-            .insert_resource(ShootCooldown(0.0))
+            .add_event::<ShotFired>()
             .add_systems(Update, (spawn_bullets, lower_bullet_velocity, remove_stopped_bullets));
     }
 }
