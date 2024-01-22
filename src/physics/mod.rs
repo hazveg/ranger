@@ -1,27 +1,13 @@
 use bevy::prelude::*;
 
 pub mod aabb;
+mod systems;
 
 
 const DEBUG: bool = true;
 
-
-fn update_bounding_box_points(
-    mut bounding_box_query: Query<(&mut self::aabb::AABB, &Transform)>,
-) {
-    for (mut aabb, transform) in bounding_box_query.iter_mut() {
-        aabb.point = transform.translation;
-    }
-}
-
-fn debug_bounding_boxes(
-    bounding_box_query: Query<&aabb::AABB>,
-    mut gizmos: Gizmos,
-) {
-    for bounding_box in bounding_box_query.iter() {
-        bounding_box.outline(&mut gizmos)
-    }
-}
+#[derive(Event, Debug)]
+pub struct BulletCollisionEvent(pub Entity, pub Entity);
 
 
 pub struct PhysicsPlugin;
@@ -29,11 +15,17 @@ pub struct PhysicsPlugin;
 impl Plugin for PhysicsPlugin {
     fn build(&self, app: &mut App) {
         app
-            .add_systems(Update, update_bounding_box_points);
-
+            .add_event::<BulletCollisionEvent>()
+            .add_systems(Update, (
+                systems::update_bounding_box_points,
+                systems::detect_bullet_collisions,
+            ));
+        
         if DEBUG {
             app
-                .add_systems(Update, debug_bounding_boxes);
+                .add_systems(Update, (
+                    systems::debug_bounding_boxes,
+                ));
         }
     }
 }

@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-#[derive(Component)]
+#[derive(Component, Debug)]
 pub struct AABB {
     pub point: Vec3,
     pub width: f32,
@@ -19,8 +19,8 @@ impl AABB {
     /// Doesn't ACTUALLY return the vertices, just the top-left and bottom-right ones
     fn vertices(&self) -> [Vec3; 2] {
         [
-            Vec3::new(self.point.x - self.width / 2.0, self.point.y - self.height / 2.0, 0.0),
-            Vec3::new(self.point.x + self.width / 2.0, self.point.y + self.height / 2.0, 0.0),
+            Vec3::new(self.point.x - self.width / 2.0, self.point.y + self.height / 2.0, 0.0),
+            Vec3::new(self.point.x + self.width / 2.0, self.point.y - self.height / 2.0, 0.0),
         ]
     }
 
