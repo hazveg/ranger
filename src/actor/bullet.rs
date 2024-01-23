@@ -60,31 +60,29 @@ fn spawn_bullets(
 
 fn lower_bullet_velocity(
     mut bullet_query: Query<(Entity, &mut crate::common::Path, &mut BulletDropoff), With<Bullet>>,
-    mut bullet_collision_event: EventReader<crate::physics::BulletCollisionEvent>,
+    mut bullet_collision: EventReader<crate::physics::BulletCollisionEvent>,
     res_time: Res<Time>,
 ) {
+    // needs to be done, reading normally "discards" unmatching events => skipped over penetrations
+    // yes, i'm upset that this works too.
+    let collisions: Vec<&crate::physics::BulletCollisionEvent> = bullet_collision.read().collect();
+
     for (entity, mut path, mut bullet_dropoff) in bullet_query.iter_mut() {
         path.velocity -= res_time.delta_seconds() * bullet_dropoff.0 * bullet_dropoff.0;
 
         bullet_dropoff.0 += 0.05;
 
-        dbg!(&bullet_collision_event.read().len());
-        
-        // i wonder if time complexity is gonna fuck me in the ass
-        let collision: Vec<&crate::physics::BulletCollisionEvent> = bullet_collision_event.read()
-            .filter(|collision| collision.1 == entity).collect();
-
-        let reduction = if collision.len() > 0 {
-            0.8
-        } else {
-            0.0
-        };
-
-        path.velocity -= reduction;
-
         // The borrow checker is the bane of my existance
         let velocity = path.velocity;
         path.movement *= velocity;
+
+        for collision in collisions.iter() {
+            if collision.1 != entity {
+                continue;
+            }
+
+            path.velocity -= 25.0 * res_time.delta_seconds();
+        }
     }
 }
 

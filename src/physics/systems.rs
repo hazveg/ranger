@@ -39,7 +39,7 @@ pub fn detect_bullet_collisions(
             if !bullet.1.box_collision(bounding_box.1) {
                 continue;
             }
-
+            
             bullet_collision_event.send(super::BulletCollisionEvent(bounding_box.0, bullet.0));
         }
     }
