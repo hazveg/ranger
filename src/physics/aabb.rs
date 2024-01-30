@@ -32,6 +32,13 @@ impl AABB {
         self_vertices[1].y < other_vertices[0].y && self_vertices[0].y > other_vertices[1].y
     }
 
+    pub fn point_collision(&self, point: Vec3) -> bool {
+        let self_vertices = self.vertices();
+
+        self_vertices[1].x > point.x && self_vertices[0].x < point.x &&
+        self_vertices[1].y < point.y && self_vertices[0].y > point.y
+    }
+
     pub fn outline(&self, gizmos: &mut Gizmos) {
         let self_vertices = self.vertices();
 
