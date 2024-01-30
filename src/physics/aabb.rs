@@ -39,13 +39,13 @@ impl AABB {
         self_vertices[1].y < point.y && self_vertices[0].y > point.y
     }
 
-    pub fn outline(&self, gizmos: &mut Gizmos) {
+    pub fn outline(&self, gizmos: &mut Gizmos, color: Color) {
         let self_vertices = self.vertices();
 
-        gizmos.line(self_vertices[0], Vec3::new(self_vertices[0].x, self_vertices[1].y, 0.0), Color::GREEN);
-        gizmos.line(Vec3::new(self_vertices[0].x, self_vertices[1].y, 0.0), self_vertices[1], Color::GREEN);
-        gizmos.line(self_vertices[1], Vec3::new(self_vertices[1].x, self_vertices[0].y, 0.0), Color::GREEN);
-        gizmos.line(Vec3::new(self_vertices[1].x, self_vertices[0].y, 0.0), self_vertices[0], Color::GREEN);
+        gizmos.line(self_vertices[0], Vec3::new(self_vertices[0].x, self_vertices[1].y, 0.0), color);
+        gizmos.line(Vec3::new(self_vertices[0].x, self_vertices[1].y, 0.0), self_vertices[1], color);
+        gizmos.line(self_vertices[1], Vec3::new(self_vertices[1].x, self_vertices[0].y, 0.0), color);
+        gizmos.line(Vec3::new(self_vertices[1].x, self_vertices[0].y, 0.0), self_vertices[0], color);
     }
 
     // Thank the lord I don't have to do any collision resolution... yet

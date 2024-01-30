@@ -13,7 +13,7 @@ impl Plugin for PhysicsPlugin {
     fn build(&self, app: &mut App) {
         app
             .add_systems(Update, (
-                systems::update_bounding_box_points,
+                systems::update_bounding_box_points.after(crate::actor::move_actors),
             ));
         
         if DEBUG {

@@ -1,5 +1,4 @@
 use bevy::prelude::*;
-use crate::physics::aabb::AABB;
 
 #[derive(Component)]
 pub struct Bullet;
@@ -37,7 +36,6 @@ fn spawn_bullets(
 
     commands.spawn((
         Bullet,
-        AABB::new(player_query.single().translation, Vec2::splat(10.0)),
         BulletDropoff(0.0),
         crate::common::Path::steering(
             &player_query.single().translation,
@@ -56,6 +54,22 @@ fn spawn_bullets(
     ));
 
     res_shoot_cooldown.0 = 0.1;
+}
+
+fn hitscan(
+    bullet_query: Query<&Transform, With<Bullet>>,
+    actor_query: Query<(Entity, &crate::physics::aabb::AABB), Without<crate::actor::player::Player>>,
+    mut hitevent: EventWriter<super::HitEvent>,
+) {
+    for bullet_transform in bullet_query.iter() {
+        for (entity, aabb) in actor_query.iter() {
+            if !aabb.point_collision(bullet_transform.translation) {
+                continue;
+            }
+
+            hitevent.send(super::HitEvent(entity))
+        }
+    }
 }
 
 fn lower_bullet_velocity(
@@ -94,6 +108,7 @@ impl Plugin for BulletPlugin {
         app
             .insert_resource(ShootCooldown(0.0))
             .add_systems(Update, (
+                hitscan.before(crate::actor::move_actors),
                 spawn_bullets,
                 lower_bullet_velocity,
                 remove_stopped_bullets,
