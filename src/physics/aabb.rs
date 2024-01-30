@@ -39,6 +39,18 @@ impl AABB {
         self_vertices[1].y < point.y && self_vertices[0].y > point.y
     }
 
+    pub fn delta(&self, movement_vector: Vec3) -> AABB {
+        AABB {
+            point: Vec3 {
+                x: self.point.x + movement_vector.x,
+                y: self.point.y + movement_vector.y,
+                z: self.point.z + movement_vector.z,
+            },
+            width: self.width,
+            height: self.height,
+        }
+    }
+
     pub fn outline(&self, gizmos: &mut Gizmos, color: Color) {
         let self_vertices = self.vertices();
 

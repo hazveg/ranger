@@ -6,7 +6,6 @@ pub struct Bullet;
 #[derive(Component)]
 struct BulletDropoff(f32);
 
-
 #[derive(Resource, Default)]
 // The cooldown needs to be dynamic, so no Timer
 struct ShootCooldown(f32);
@@ -56,7 +55,7 @@ fn spawn_bullets(
     res_shoot_cooldown.0 = 0.1;
 }
 
-fn hitscan(
+/*fn hitscan(
     bullet_query: Query<&Transform, With<Bullet>>,
     actor_query: Query<(Entity, &crate::physics::aabb::AABB), Without<crate::actor::player::Player>>,
     mut hitevent: EventWriter<super::HitEvent>,
@@ -70,7 +69,7 @@ fn hitscan(
             hitevent.send(super::HitEvent(entity))
         }
     }
-}
+}*/
 
 fn lower_bullet_velocity(
     mut bullet_query: Query<(&mut crate::common::Path, &mut BulletDropoff), With<Bullet>>,
@@ -108,7 +107,7 @@ impl Plugin for BulletPlugin {
         app
             .insert_resource(ShootCooldown(0.0))
             .add_systems(Update, (
-                hitscan.before(crate::actor::move_actors),
+                //hitscan.before(crate::actor::move_actors),
                 spawn_bullets,
                 lower_bullet_velocity,
                 remove_stopped_bullets,

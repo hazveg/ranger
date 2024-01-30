@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 use crate::physics::aabb::AABB;
 
+use crate::actor::HitEvent;
 
 pub fn update_bounding_box_points(
     mut bounding_box_query: Query<(&mut AABB, &Transform)>,
@@ -12,7 +13,7 @@ pub fn update_bounding_box_points(
 
 pub fn debug_bounding_boxes(
     bounding_box_query: Query<(Entity, &AABB)>,
-    mut hitevent: EventReader<crate::actor::HitEvent>,
+    mut hitevent: EventReader<HitEvent>,
     mut gizmos: Gizmos,
 ) {
     let hit_events: Vec<Entity> = hitevent.read().map(|ev| ev.0).collect();

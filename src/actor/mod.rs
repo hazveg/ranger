@@ -12,10 +12,32 @@ struct Health(f32);
 pub struct HitEvent(pub Entity);
 
 pub fn move_actors(
-    mut actor_query: Query<(&crate::common::Path, &mut Transform)>,
+    mut actor_query: Query<(
+        &crate::common::Path,
+        &mut Transform,
+        &AABB
+    )>,
+    hit_event: EventWriter<HitEvent>,
     res_time: Res<Time>,
 ) {
-    for (path, mut transform) in actor_query.iter_mut() {
+    let actors: Vec<(&crate::common::Path, &Transform, &AABB)> = actor_query.iter().collect();
+    for i in 0..actors.len() {
+        if actors[i].0.movement == Vec3::ZERO {
+            continue;
+        }
+
+        for j in i+1..actors.len() {
+            let (path, transform, bounding_box) = actors[i];
+            let (_, _, static_bounding_box) = actors[j];
+
+            if !static_bounding_box.box_collision(&bounding_box.delta(path.movement * res_time.delta_seconds())) {
+                continue;
+            }
+
+            println!("collision");
+        }
+    }
+    for (path, mut transform, _) in actor_query.iter_mut() {
         transform.translation += path.movement * res_time.delta_seconds();
     }
 }
