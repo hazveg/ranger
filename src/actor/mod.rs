@@ -8,16 +8,12 @@ pub mod bullet;
 #[derive(Component)]
 struct Health(f32);
 
-#[derive(Event, Debug, PartialEq)]
-pub struct HitEvent(pub Entity);
-
-pub fn move_actors(
+pub fn move_actors_and_detect_collisions(
     mut actor_query: Query<(
         &crate::common::Path,
         &mut Transform,
         &AABB
     )>,
-    hit_event: EventWriter<HitEvent>,
     res_time: Res<Time>,
 ) {
     let actors: Vec<(&crate::common::Path, &Transform, &AABB)> = actor_query.iter().collect();
@@ -27,16 +23,17 @@ pub fn move_actors(
         }
 
         for j in i+1..actors.len() {
-            let (path, transform, bounding_box) = actors[i];
+            let (path, _, bounding_box) = actors[i];
             let (_, _, static_bounding_box) = actors[j];
 
             if !static_bounding_box.box_collision(&bounding_box.delta(path.movement * res_time.delta_seconds())) {
                 continue;
             }
 
-            println!("collision");
+            println!("actor collision");
         }
     }
+
     for (path, mut transform, _) in actor_query.iter_mut() {
         transform.translation += path.movement * res_time.delta_seconds();
     }
@@ -84,14 +81,14 @@ pub struct ActorPlugin;
 impl Plugin for ActorPlugin {
     fn build(&self, app: &mut App) {
         app
-            .add_event::<HitEvent>()
+            .add_event::<bullet::HitEvent>()
             .add_plugins((
                 player::PlayerPlugin,
                 bullet::BulletPlugin,
                 basic_enemy::EnemyPlugin,
             ))
             .add_systems(Update, (
-                move_actors,
+                move_actors_and_detect_collisions,
                 confine_actors_to_screen,
             ));
     }

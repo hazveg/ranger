@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use crate::physics::aabb::AABB;
 
-use crate::actor::HitEvent;
+use crate::actor::bullet::HitEvent;
 
 pub fn update_bounding_box_points(
     mut bounding_box_query: Query<(&mut AABB, &Transform)>,

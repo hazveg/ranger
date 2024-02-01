@@ -1,5 +1,7 @@
 use bevy::prelude::*;
 
+use crate::physics::aabb::AABB;
+
 #[derive(Component)]
 pub struct Bullet;
 
@@ -9,6 +11,9 @@ struct BulletDropoff(f32);
 #[derive(Resource, Default)]
 // The cooldown needs to be dynamic, so no Timer
 struct ShootCooldown(f32);
+
+#[derive(Event, Debug, PartialEq)]
+pub struct HitEvent(pub Entity);
 
 
 fn spawn_bullets(
@@ -55,21 +60,38 @@ fn spawn_bullets(
     res_shoot_cooldown.0 = 0.1;
 }
 
-/*fn hitscan(
-    bullet_query: Query<&Transform, With<Bullet>>,
-    actor_query: Query<(Entity, &crate::physics::aabb::AABB), Without<crate::actor::player::Player>>,
-    mut hitevent: EventWriter<super::HitEvent>,
+fn check_for_collisions(
+    bullet_query: Query<(&crate::common::Path, &mut Transform), With<Bullet>>,
+    actor_query: Query<(Entity, &AABB), Without<super::player::Player>>,
+    mut hit_event: EventWriter<HitEvent>,
+    res_time: Res<Time>,
 ) {
-    for bullet_transform in bullet_query.iter() {
-        for (entity, aabb) in actor_query.iter() {
-            if !aabb.point_collision(bullet_transform.translation) {
-                continue;
-            }
+    for (path, transform) in bullet_query.iter() {
+        let movement_vector = transform.translation + path.movement * res_time.delta_seconds();
 
-            hitevent.send(super::HitEvent(entity))
+        for (entity, aabb) in actor_query.iter() {
+            for i in 1..=10 {
+                if !aabb.point_collision(movement_vector * (i as f32 / 10.0)) {
+                    continue;
+                }
+                
+                println!("bullet collision");
+                hit_event.send(HitEvent(entity));
+                break;
+            }
         }
     }
-}*/
+}
+
+// hopefully only a temporary measure
+fn move_bullets(
+    mut bullet_query: Query<(&crate::common::Path, &mut Transform), With<Bullet>>,
+    res_time: Res<Time>,
+) {
+    for (path, mut transform) in bullet_query.iter_mut() {
+        transform.translation += path.movement * res_time.delta_seconds();
+    }
+}
 
 fn lower_bullet_velocity(
     mut bullet_query: Query<(&mut crate::common::Path, &mut BulletDropoff), With<Bullet>>,
@@ -107,8 +129,9 @@ impl Plugin for BulletPlugin {
         app
             .insert_resource(ShootCooldown(0.0))
             .add_systems(Update, (
-                //hitscan.before(crate::actor::move_actors),
                 spawn_bullets,
+                check_for_collisions,
+                move_bullets,
                 lower_bullet_velocity,
                 remove_stopped_bullets,
             ));
