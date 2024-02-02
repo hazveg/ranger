@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-#[derive(Component, Debug)]
+#[derive(Component, Debug, Clone)]
 pub struct AABB {
     pub point: Vec3,
     pub width: f32,

@@ -75,7 +75,6 @@ fn check_for_collisions(
                     continue;
                 }
                 
-                println!("bullet collision");
                 hit_event.send(HitEvent(entity));
                 break;
             }

@@ -8,7 +8,7 @@ pub mod bullet;
 #[derive(Component)]
 struct Health(f32);
 
-pub fn move_actors_and_detect_collisions(
+pub fn move_actors(
     mut actor_query: Query<(
         &crate::common::Path,
         &mut Transform,
@@ -16,27 +16,34 @@ pub fn move_actors_and_detect_collisions(
     )>,
     res_time: Res<Time>,
 ) {
-    let actors: Vec<(&crate::common::Path, &Transform, &AABB)> = actor_query.iter().collect();
+    for (path, mut transform, _) in actor_query.iter_mut() {
+        transform.translation += path.movement * res_time.delta_seconds();
+    }
+}
+
+fn detect_actor_collisions(
+    actor_query: Query<(&crate::common::Path, &AABB)>,
+    res_time: Res<Time>,
+) {
+    let actors: Vec<(&crate::common::Path, &AABB)> = actor_query.iter().collect();
     for i in 0..actors.len() {
         if actors[i].0.movement == Vec3::ZERO {
             continue;
         }
 
         for j in i+1..actors.len() {
-            let (path, _, bounding_box) = actors[i];
-            let (_, _, static_bounding_box) = actors[j];
+            let (path, bounding_box) = actors[i];
+            let (_, static_bounding_box) = actors[j];
 
-            if !static_bounding_box.box_collision(&bounding_box.delta(path.movement * res_time.delta_seconds())) {
+            let delta = bounding_box.delta(path.movement * res_time.delta_seconds());
+            if !static_bounding_box.box_collision(&delta) {
                 continue;
             }
 
-            println!("actor collision");
+            println!("collision");
         }
     }
 
-    for (path, mut transform, _) in actor_query.iter_mut() {
-        transform.translation += path.movement * res_time.delta_seconds();
-    }
 }
 
 /// The original RANGER didn't have any nifty camera scrolling. So the same has to apply here.
@@ -88,7 +95,8 @@ impl Plugin for ActorPlugin {
                 basic_enemy::EnemyPlugin,
             ))
             .add_systems(Update, (
-                move_actors_and_detect_collisions,
+                detect_actor_collisions.before(move_actors),
+                move_actors,
                 confine_actors_to_screen,
             ));
     }
