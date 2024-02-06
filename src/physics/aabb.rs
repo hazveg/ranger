@@ -51,6 +51,23 @@ impl AABB {
         }
     }
 
+    pub fn correct(&self, other: &AABB) -> Vec3 {
+        let self_vertices = self.vertices();
+        let other_vertices = other.vertices();
+
+        let mut correction: Vec3 = Vec3::ZERO;
+
+        if self_vertices[1].x > other_vertices[0].x && self_vertices[0].x < other_vertices[1].x {
+            correction.x = 0.0 - (self_vertices[1].x - other_vertices[0].x);
+        }
+
+        if self_vertices[0].x < other_vertices[1].x && self_vertices[1].x > other_vertices[1].x {
+            correction.x = other_vertices[1].x - self_vertices[0].x;
+        }
+        
+        correction
+    }
+
     pub fn outline(&self, gizmos: &mut Gizmos, color: Color) {
         let self_vertices = self.vertices();
 

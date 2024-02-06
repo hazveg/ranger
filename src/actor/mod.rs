@@ -8,6 +8,11 @@ pub mod bullet;
 #[derive(Component)]
 struct Health(f32);
 
+#[derive(Component)]
+struct Resolve {
+    pub correction: Vec3,
+}
+
 pub fn move_actors(
     mut actor_query: Query<(
         &crate::common::Path,
@@ -22,28 +27,43 @@ pub fn move_actors(
 }
 
 fn detect_actor_collisions(
-    actor_query: Query<(&crate::common::Path, &AABB)>,
+    actor_query: Query<(Entity, &crate::common::Path, &AABB)>,
     res_time: Res<Time>,
+    mut commands: Commands,
 ) {
-    let actors: Vec<(&crate::common::Path, &AABB)> = actor_query.iter().collect();
+    let actors: Vec<(Entity, &crate::common::Path, &AABB)> = actor_query.iter().collect();
     for i in 0..actors.len() {
-        if actors[i].0.movement == Vec3::ZERO {
+        if actors[i].1.movement == Vec3::ZERO {
             continue;
         }
 
         for j in i+1..actors.len() {
-            let (path, bounding_box) = actors[i];
-            let (_, static_bounding_box) = actors[j];
+            let (entity, path, bounding_box) = actors[i];
+            let (_, _, static_bounding_box) = actors[j];
 
             let delta = bounding_box.delta(path.movement * res_time.delta_seconds());
-            if !static_bounding_box.box_collision(&delta) {
+            if !delta.box_collision(&static_bounding_box) {
                 continue;
             }
 
-            println!("collision");
+            let correction = delta.correct(static_bounding_box);
+            commands.entity(entity).insert(Resolve { correction });
         }
     }
 
+}
+
+fn resolve_actor_collisions(
+    mut actor_query: Query<(Entity, &mut crate::common::Path, &Resolve)>,
+    res_time: Res<Time>,
+    mut commands: Commands,
+) {
+    for (entity, mut path, resolve) in actor_query.iter_mut() {
+        path.movement *= res_time.delta_seconds();
+        path.movement += resolve.correction;
+        path.movement /= res_time.delta_seconds();
+        commands.entity(entity).remove::<Resolve>();
+    }
 }
 
 /// The original RANGER didn't have any nifty camera scrolling. So the same has to apply here.
@@ -95,7 +115,8 @@ impl Plugin for ActorPlugin {
                 basic_enemy::EnemyPlugin,
             ))
             .add_systems(Update, (
-                detect_actor_collisions.before(move_actors),
+                detect_actor_collisions.before(resolve_actor_collisions),
+                resolve_actor_collisions.before(move_actors),
                 move_actors,
                 confine_actors_to_screen,
             ));
