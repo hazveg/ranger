@@ -3,14 +3,6 @@ use crate::physics::aabb::AABB;
 
 use crate::actor::bullet::HitEvent;
 
-pub fn update_bounding_box_points(
-    mut bounding_box_query: Query<(&mut AABB, &Transform)>,
-) {
-    for (mut aabb, transform) in bounding_box_query.iter_mut() {
-        aabb.point = transform.translation;
-    }
-}
-
 pub fn debug_bounding_boxes(
     bounding_box_query: Query<(Entity, &AABB)>,
     mut hitevent: EventReader<HitEvent>,

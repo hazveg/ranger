@@ -17,12 +17,13 @@ pub fn move_actors(
     mut actor_query: Query<(
         &crate::common::Path,
         &mut Transform,
-        &AABB
+        &mut AABB,
     )>,
     res_time: Res<Time>,
 ) {
-    for (path, mut transform, _) in actor_query.iter_mut() {
+    for (path, mut transform, mut aabb) in actor_query.iter_mut() {
         transform.translation += path.movement * res_time.delta_seconds();
+        aabb.point = transform.translation;
     }
 }
 
