@@ -26,7 +26,7 @@ pub fn move_actors(
     }
 }
 
-fn detect_actor_collisions(
+pub fn detect_actor_collisions(
     actor_query: Query<(Entity, &crate::common::Path, &AABB)>,
     res_time: Res<Time>,
     mut commands: Commands,
