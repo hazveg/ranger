@@ -9,7 +9,7 @@ pub mod bullet;
 struct Health(f32);
 
 #[derive(Component)]
-struct Resolve {
+pub struct Resolve {
     pub correction: Vec3,
 }
 
@@ -37,20 +37,27 @@ fn detect_actor_collisions(
             continue;
         }
 
-        for j in i+1..actors.len() {
+        'revolt: for j in i+1..actors.len() {
             let (entity, path, bounding_box) = actors[i];
             let (_, _, static_bounding_box) = actors[j];
+            
+            for i in 1..=10 {
+                let temp_delta = bounding_box.delta(path.movement * (i as f32 * 0.1) * res_time.delta_seconds());
+                if temp_delta.box_collision(&static_bounding_box) {
+                    break;
+                }
 
-            let delta = bounding_box.delta(path.movement * res_time.delta_seconds());
-            if !delta.box_collision(&static_bounding_box) {
-                continue;
+                if i == 10 {
+                    break 'revolt;
+                }
             }
 
+            let delta = bounding_box.delta(path.movement * res_time.delta_seconds());
+            
             let correction = delta.correct(static_bounding_box);
             commands.entity(entity).insert(Resolve { correction });
         }
     }
-
 }
 
 fn resolve_actor_collisions(

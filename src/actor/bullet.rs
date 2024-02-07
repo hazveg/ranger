@@ -71,7 +71,7 @@ fn check_for_collisions(
 
         for (entity, aabb) in actor_query.iter() {
             for i in 1..=10 {
-                if !aabb.point_collision(movement_vector * (i as f32 / 10.0)) {
+                if !aabb.point_collision(movement_vector * (i as f32 * 0.1)) {
                     continue;
                 }
                 
