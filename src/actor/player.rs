@@ -70,6 +70,6 @@ impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app
             .add_systems(Startup, spawn_player)
-            .add_systems(Update, (move_player, rotate_player_to_cursor));
+            .add_systems(Update, (move_player.before(super::detect_actor_collisions), rotate_player_to_cursor));
     }
 }

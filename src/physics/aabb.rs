@@ -71,30 +71,16 @@ impl AABB {
         if self_vertices[1].x > other_vertices[0].x && self_vertices[0].x < other_vertices[0].x {
             correction.x = -(self_vertices[1].x - other_vertices[0].x);
         }
-
         if self_vertices[0].x < other_vertices[1].x && self_vertices[1].x > other_vertices[1].x {
             correction.x = other_vertices[1].x - self_vertices[0].x;
         }
 
-        let mut conditions = (false, false);
-        
         if self_vertices[1].y < other_vertices[0].y && self_vertices[0].y > other_vertices[0].y {
-            conditions.0 = true;
             correction.y = other_vertices[0].y - self_vertices[1].y;
         }
         if self_vertices[0].y > other_vertices[1].y && self_vertices[1].y < other_vertices[1].y {
-            conditions.1 = true;
             correction.y = -(self_vertices[0].y - other_vertices[1].y);
         }
-
-        /*
-        match conditions {
-            (true, true) => println!("FUCK"),
-            (false, false) => println!("HOW"),
-            (true, false) => println!("1"),
-            (false, true) => println!("2"),
-        }
-        */
         //println!("{} > {}", correction.x.abs(), correction.y.abs());
 
         if correction.x.abs() > correction.y.abs() {

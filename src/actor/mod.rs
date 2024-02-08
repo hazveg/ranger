@@ -11,6 +11,7 @@ struct Health(f32);
 #[derive(Component)]
 pub struct Resolve {
     pub correction: Vec3,
+    pub truncated_movement: Vec3,
 }
 
 pub fn move_actors(
@@ -38,25 +39,29 @@ pub fn detect_actor_collisions(
             continue;
         }
 
+        let (entity, path, bounding_box) = actors[i];
+
         'revolt: for j in i+1..actors.len() {
-            let (entity, path, bounding_box) = actors[i];
             let (_, _, static_bounding_box) = actors[j];
+            let mut correction = Vec3::ZERO;
+            let mut truncated_movement = path.movement.clone();
             
-            for i in 1..=10 {
-                let temp_delta = bounding_box.delta(path.movement * (i as f32 * 0.1) * res_time.delta_seconds());
-                if temp_delta.box_collision(&static_bounding_box) {
+            for k in 1..=10 {
+                let path_trunc = path.movement * (k as f32 * 0.1);
+                let delta = bounding_box.delta(path_trunc * res_time.delta_seconds());
+
+                if delta.box_collision(&static_bounding_box) {
+                    truncated_movement = path_trunc;
+                    correction = delta.correct(static_bounding_box);
                     break;
                 }
 
-                if i == 10 {
+                if k == 10 {
                     break 'revolt;
                 }
             }
 
-            let delta = bounding_box.delta(path.movement * res_time.delta_seconds());
-            
-            let correction = delta.correct(static_bounding_box);
-            commands.entity(entity).insert(Resolve { correction });
+            commands.entity(entity).insert(Resolve { correction, truncated_movement });
         }
     }
 }
@@ -67,6 +72,8 @@ fn resolve_actor_collisions(
     mut commands: Commands,
 ) {
     for (entity, mut path, resolve) in actor_query.iter_mut() {
+        path.movement = resolve.truncated_movement;
+
         path.movement *= res_time.delta_seconds();
         path.movement += resolve.correction;
         path.movement /= res_time.delta_seconds();
