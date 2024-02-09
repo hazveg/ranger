@@ -81,7 +81,6 @@ impl AABB {
         if self_vertices[0].y > other_vertices[1].y && self_vertices[1].y < other_vertices[1].y {
             correction.y = -(self_vertices[0].y - other_vertices[1].y);
         }
-        //println!("{} > {}", correction.x.abs(), correction.y.abs());
 
         if correction.x.abs() > correction.y.abs() {
             correction.x = 0.0
@@ -89,8 +88,13 @@ impl AABB {
             correction.y = 0.0
         }
         
-        
-        //dbg!(correction);
         correction
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn it_works() {
     }
 }

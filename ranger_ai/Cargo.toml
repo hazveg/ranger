@@ -1,6 +1,5 @@
-workspace = { members = [ "ranger_ai","ranger_physics"] }
 [package]
-name = "ranger"
+name = "ranger_ai"
 version = "0.1.0"
 edition = "2021"
 
@@ -8,5 +7,3 @@ edition = "2021"
 
 [dependencies]
 bevy = { version = "0.12.0", features = ["wayland"] }
-ranger_physics = { path = "../ranger/ranger_physics" }
-ranger_ai = { path = "../ranger/ranger_ai" }

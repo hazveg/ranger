@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use crate::physics::aabb::*;
+use ranger_physics::AABB;
 
 #[derive(Component)]
 pub struct Player;

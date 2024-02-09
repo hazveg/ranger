@@ -1,5 +1,5 @@
 use bevy::{prelude::*, window::PrimaryWindow};
-use crate::physics::aabb::*;
+use ranger_physics::AABB;
 
 pub mod player;
 pub mod basic_enemy;

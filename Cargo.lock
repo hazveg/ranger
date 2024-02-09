@@ -2716,6 +2716,22 @@ name = "ranger"
 version = "0.1.0"
 dependencies = [
  "bevy",
+ "ranger_ai",
+ "ranger_physics",
+]
+
+[[package]]
+name = "ranger_ai"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+]
+
+[[package]]
+name = "ranger_physics"
+version = "0.1.0"
+dependencies = [
+ "bevy",
 ]
 
 [[package]]

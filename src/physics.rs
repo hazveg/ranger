@@ -1,7 +1,8 @@
 use bevy::prelude::*;
-use crate::physics::aabb::AABB;
-
+use ranger_physics::AABB;
 use crate::actor::bullet::HitEvent;
+
+const DEBUG: bool = true;
 
 pub fn debug_bounding_boxes(
     bounding_box_query: Query<(Entity, &AABB)>,
@@ -16,5 +17,20 @@ pub fn debug_bounding_boxes(
         };
 
         bounding_box.outline(&mut gizmos, color);
+    }
+}
+
+
+
+pub struct PhysicsPlugin;
+
+impl Plugin for PhysicsPlugin {
+    fn build(&self, app: &mut App) {
+        if DEBUG {
+            app
+                .add_systems(Update, (
+                    debug_bounding_boxes,
+                ));
+        }
     }
 }

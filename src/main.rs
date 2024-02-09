@@ -4,7 +4,6 @@ mod common;
 mod actor;
 mod interface;
 mod physics;
-mod ai;
 
 fn init(
     mut commands: Commands,
