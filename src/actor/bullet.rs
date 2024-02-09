@@ -43,7 +43,7 @@ fn spawn_bullets(
         crate::common::Path::r#static(
             &player_query.single().translation,
             &res_cursor_coordinates.0,
-            6000.0,
+            2000.0,
         ),
         SpriteBundle {
             sprite: Sprite {
@@ -69,15 +69,12 @@ pub fn check_for_collisions(
         let movement_vector = transform.translation + path.movement * res_time.delta_seconds();
 
         for (entity, aabb) in actor_query.iter() {
-            for i in 1..=10 {
-                if !aabb.point_collision(movement_vector * (i as f32 * 0.1)) {
-                    continue;
-                }
-                
-                println!("hit");
-                hit_event.send(HitEvent(entity));
-                break;
+            if !aabb.point_collision(movement_vector) {
+                continue;
             }
+            
+            hit_event.send(HitEvent(entity));
+            break;
         }
     }
 }
