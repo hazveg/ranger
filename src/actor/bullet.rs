@@ -59,9 +59,9 @@ fn spawn_bullets(
     res_shoot_cooldown.0 = 0.1;
 }
 
-fn check_for_collisions(
+pub fn check_for_collisions(
     bullet_query: Query<(&crate::common::Path, &mut Transform), With<Bullet>>,
-    actor_query: Query<(Entity, &AABB), Without<super::player::Player>>,
+    actor_query: Query<(Entity, &AABB)>,
     mut hit_event: EventWriter<HitEvent>,
     res_time: Res<Time>,
 ) {
@@ -74,6 +74,7 @@ fn check_for_collisions(
                     continue;
                 }
                 
+                println!("hit");
                 hit_event.send(HitEvent(entity));
                 break;
             }
@@ -128,7 +129,7 @@ impl Plugin for BulletPlugin {
             .insert_resource(ShootCooldown(0.0))
             .add_systems(Update, (
                 spawn_bullets,
-                check_for_collisions,
+                check_for_collisions.before(super::detect_collisions),
                 move_bullets,
                 lower_bullet_velocity,
                 remove_stopped_bullets,

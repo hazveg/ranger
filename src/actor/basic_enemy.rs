@@ -90,6 +90,34 @@ fn pursue_target(
     }
 }
 
+fn hit_by_bullet(
+    mut enemy_query: Query<(Entity, &mut super::Health), With<BasicEnemy>>,
+    mut hitevent: EventReader<super::bullet::HitEvent>,
+) {
+    let hit_events: Vec<Entity> = hitevent.read().map(|ev| ev.0).collect();
+
+    for (entity, mut health) in enemy_query.iter_mut() {
+        if !hit_events.contains(&entity) {
+            continue;
+        }
+
+        health.0 = 0.0;
+    }
+}
+
+fn despawn(
+    enemy_query: Query<(Entity, &super::Health), With<BasicEnemy>>,
+    mut commands: Commands,
+) {
+    for (entity, health) in enemy_query.iter() {
+        if health.0 > 0.0 {
+            continue;
+        }
+
+        commands.entity(entity).despawn();
+    }
+}
+
 
 pub struct EnemyPlugin;
 
@@ -102,6 +130,8 @@ impl Plugin for EnemyPlugin {
                 detect_player,
                 focus_on_target,
                 pursue_target,
+                hit_by_bullet.after(super::bullet::check_for_collisions),
+                despawn,
             ));
     }
 }
