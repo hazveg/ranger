@@ -10,7 +10,7 @@ impl Path {
     pub fn new() -> Self {
         Path {
             movement: Vec3::ZERO,
-            velocity: 400.0,
+            velocity: 200.0,
         }
     }
 

@@ -29,7 +29,7 @@ impl Plugin for PhysicsPlugin {
         if DEBUG {
             app
                 .add_systems(Update, (
-                    debug_bounding_boxes,
+                    debug_bounding_boxes.after(crate::actor::move_actors),
                 ));
         }
     }

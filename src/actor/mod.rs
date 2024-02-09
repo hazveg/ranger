@@ -46,8 +46,8 @@ pub fn detect_actor_collisions(
             let mut correction = Vec3::ZERO;
             let mut truncated_movement = path.movement.clone();
             
-            for k in 1..=10 {
-                let path_trunc = path.movement * (k as f32 * 0.1);
+            for k in 1..=100 {
+                let path_trunc = path.movement * (k as f32 * 0.01);
                 let delta = bounding_box.delta(path_trunc * res_time.delta_seconds());
 
                 if delta.box_collision(&static_bounding_box) {
@@ -73,9 +73,7 @@ fn resolve_actor_collisions(
 ) {
     for (entity, mut path, resolve) in actor_query.iter_mut() {
         path.movement = resolve.truncated_movement;
-
-        path.movement *= res_time.delta_seconds();
-        path.movement += resolve.correction;
+        path.movement = resolve.correction;
         path.movement /= res_time.delta_seconds();
         commands.entity(entity).remove::<Resolve>();
     }

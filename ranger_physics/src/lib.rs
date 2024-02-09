@@ -82,9 +82,10 @@ impl AABB {
             correction.y = -(self_vertices[0].y - other_vertices[1].y);
         }
 
-        if correction.x.abs() > correction.y.abs() {
+        // println!("{} > {}", correction.x.abs(), correction.y.abs());
+        if correction.x.abs() > correction.y.abs() && correction.y != 0.0 {
             correction.x = 0.0
-        } else {
+        } else if correction.x != 0.0 {
             correction.y = 0.0
         }
         
