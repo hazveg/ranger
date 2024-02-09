@@ -1,5 +1,6 @@
 use bevy::{prelude::*, window::PrimaryWindow};
 use ranger_physics::AABB;
+use crate::physics::Resolve;
 
 pub mod player;
 pub mod basic_enemy;
@@ -7,12 +8,6 @@ pub mod bullet;
 
 #[derive(Component)]
 struct Health(f32);
-
-#[derive(Component)]
-pub struct Resolve {
-    pub correction: Vec3,
-    pub truncated_movement: Vec3,
-}
 
 pub fn move_actors(
     mut actor_query: Query<(
@@ -28,7 +23,7 @@ pub fn move_actors(
     }
 }
 
-pub fn detect_actor_collisions(
+pub fn detect_collisions(
     actor_query: Query<(Entity, &crate::common::Path, &AABB)>,
     res_time: Res<Time>,
     mut commands: Commands,
@@ -66,7 +61,7 @@ pub fn detect_actor_collisions(
     }
 }
 
-fn resolve_actor_collisions(
+fn resolve_collisions(
     mut actor_query: Query<(Entity, &mut crate::common::Path, &Resolve)>,
     res_time: Res<Time>,
     mut commands: Commands,
@@ -86,7 +81,7 @@ fn resolve_actor_collisions(
 ///
 /// The width, height, and position are provided by the bounding box,
 /// The borders by the window.
-fn confine_actors_to_screen(
+fn confine_to_screen(
     mut actor_query: Query<(&mut Transform, &AABB)>,
     window_query: Query<&Window, With<PrimaryWindow>>,
 ) {
@@ -128,10 +123,10 @@ impl Plugin for ActorPlugin {
                 basic_enemy::EnemyPlugin,
             ))
             .add_systems(Update, (
-                detect_actor_collisions.before(resolve_actor_collisions),
-                resolve_actor_collisions.before(move_actors),
+                detect_collisions.before(resolve_collisions),
+                resolve_collisions.before(move_actors),
                 move_actors,
-                confine_actors_to_screen,
+                confine_to_screen,
             ));
     }
 }

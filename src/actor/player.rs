@@ -15,7 +15,7 @@ fn spawn_player(
         Player,
         AABB::new(Vec3::ZERO, PLAYER_SIZE),
         crate::actor::Health(100.0),
-        crate::common::Path::new(),
+        crate::common::Path::new(200.0),
         SpriteBundle {
             sprite: Sprite {
                 custom_size: Some(PLAYER_SIZE),
@@ -70,6 +70,6 @@ impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app
             .add_systems(Startup, spawn_player)
-            .add_systems(Update, (move_player.before(super::detect_actor_collisions), rotate_player_to_cursor));
+            .add_systems(Update, (move_player.before(super::detect_collisions), rotate_player_to_cursor));
     }
 }

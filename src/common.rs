@@ -7,17 +7,24 @@ pub struct Path {
 }
 
 impl Path {
-    pub fn new() -> Self {
+    pub fn new(velocity: f32) -> Self {
         Path {
             movement: Vec3::ZERO,
-            velocity: 200.0,
+            velocity,
         }
     }
 
-    pub fn steering(origin: &Vec3, destination: &Vec3, velocity: f32) -> Self {
+    pub fn steering(&mut self, origin: &Vec3, destination: &Vec3) {
+        let desired_velocity = (*destination - *origin).normalize_or_zero() * self.velocity;
+
+        self.movement = desired_velocity - origin.normalize_or_zero();
+    }
+    
+    // HOPEFULLY TEMPORARY SOLUTION FOR BULLETS
+    pub fn r#static(origin: &Vec3, destination: &Vec3, velocity: f32) -> Self {
         let desired_velocity = (*destination - *origin).normalize_or_zero() * velocity;
 
-        Path {
+        Self {
             movement: desired_velocity - origin.normalize_or_zero(),
             velocity: 1.0,
         }

@@ -40,7 +40,7 @@ fn spawn_bullets(
     commands.spawn((
         Bullet,
         BulletDropoff(0.0),
-        crate::common::Path::steering(
+        crate::common::Path::r#static(
             &player_query.single().translation,
             &res_cursor_coordinates.0,
             6000.0,
