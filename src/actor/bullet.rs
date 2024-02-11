@@ -69,7 +69,7 @@ pub fn check_for_collisions(
         let movement_vector = transform.translation + path.movement * res_time.delta_seconds();
 
         for (entity, aabb) in actor_query.iter() {
-            if !aabb.point_collision(movement_vector) {
+            if !aabb.intersect_line(transform.translation, movement_vector) {
                 continue;
             }
             
@@ -126,7 +126,7 @@ impl Plugin for BulletPlugin {
             .insert_resource(ShootCooldown(0.0))
             .add_systems(Update, (
                 spawn_bullets,
-                check_for_collisions.before(super::detect_collisions),
+                check_for_collisions,
                 move_bullets,
                 lower_bullet_velocity,
                 remove_stopped_bullets,

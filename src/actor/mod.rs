@@ -1,6 +1,5 @@
 use bevy::{prelude::*, window::PrimaryWindow};
 use ranger_physics::AABB;
-use crate::physics::Resolve;
 
 pub mod player;
 pub mod basic_enemy;
@@ -20,57 +19,6 @@ pub fn move_actors(
     for (path, mut transform, mut aabb) in actor_query.iter_mut() {
         transform.translation += path.movement * res_time.delta_seconds();
         aabb.point = transform.translation;
-    }
-}
-
-pub fn detect_collisions(
-    actor_query: Query<(Entity, &crate::common::Path, &AABB)>,
-    res_time: Res<Time>,
-    mut commands: Commands,
-) {
-    let actors: Vec<(Entity, &crate::common::Path, &AABB)> = actor_query.iter().collect();
-    for i in 0..actors.len() {
-        if actors[i].1.movement == Vec3::ZERO {
-            continue;
-        }
-
-        let (entity, path, bounding_box) = actors[i];
-
-        'revolt: for j in i+1..actors.len() {
-            let (_, _, static_bounding_box) = actors[j];
-            let mut correction = Vec3::ZERO;
-            let mut truncated_movement = path.movement.clone();
-            
-            for k in 1..=100 {
-                let path_trunc = path.movement * (k as f32 * 0.01);
-                let delta = bounding_box.delta(path_trunc * res_time.delta_seconds());
-
-                if delta.box_collision(&static_bounding_box) {
-                    truncated_movement = path_trunc;
-                    correction = delta.correct(static_bounding_box);
-                    break;
-                }
-
-                if k == 10 {
-                    break 'revolt;
-                }
-            }
-
-            commands.entity(entity).insert(Resolve { correction, truncated_movement });
-        }
-    }
-}
-
-fn resolve_collisions(
-    mut actor_query: Query<(Entity, &mut crate::common::Path, &Resolve)>,
-    res_time: Res<Time>,
-    mut commands: Commands,
-) {
-    for (entity, mut path, resolve) in actor_query.iter_mut() {
-        path.movement = resolve.truncated_movement;
-        path.movement = resolve.correction;
-        path.movement /= res_time.delta_seconds();
-        commands.entity(entity).remove::<Resolve>();
     }
 }
 
@@ -123,8 +71,6 @@ impl Plugin for ActorPlugin {
                 basic_enemy::EnemyPlugin,
             ))
             .add_systems(Update, (
-                detect_collisions.before(resolve_collisions),
-                resolve_collisions.before(move_actors),
                 move_actors,
                 confine_to_screen,
             ));
