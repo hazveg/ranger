@@ -64,7 +64,6 @@ pub struct ActorPlugin;
 impl Plugin for ActorPlugin {
     fn build(&self, app: &mut App) {
         app
-            .add_event::<bullet::HitEvent>()
             .add_plugins((
                 player::PlayerPlugin,
                 bullet::BulletPlugin,

@@ -11,9 +11,8 @@ struct BulletDropoff(f32);
 // The cooldown needs to be dynamic, so no Timer
 struct ShootCooldown(f32);
 
-#[derive(Event, Debug, PartialEq)]
-pub struct HitEvent(pub Entity);
-
+#[derive(Component)]
+pub struct Hit;
 
 fn spawn_bullets(
     player_query: Query<&Transform, With<crate::actor::player::Player>>,
@@ -60,21 +59,33 @@ fn spawn_bullets(
 }
 
 pub fn check_for_collisions(
-    bullet_query: Query<(&crate::common::Path, &mut Transform), With<Bullet>>,
+    bullet_query: Query<(Entity, &crate::common::Path, &mut Transform), With<Bullet>>,
     actor_query: Query<(Entity, &AABB), Without<super::player::Player>>,
-    mut hit_event: EventWriter<HitEvent>,
+    mut commands: Commands,
     res_time: Res<Time>,
 ) {
-    for (path, transform) in bullet_query.iter() {
+    for (b_entity, path, transform) in bullet_query.iter() {
         let movement_vector = transform.translation + path.movement * res_time.delta_seconds();
 
-        for (entity, aabb) in actor_query.iter() {
+        for (a_entity, aabb) in actor_query.iter() {
             if !aabb.intersect_line(transform.translation, movement_vector) {
                 continue;
             }
-            
-            hit_event.send(HitEvent(entity));
+
+            commands.entity(a_entity).insert(Hit);
+            commands.entity(b_entity).insert(Hit);
         }
+    }
+}
+
+fn slow_down_bullets_that_hit(
+    mut bullet_query: Query<(Entity, &mut crate::common::Path, &Hit), With<Bullet>>,
+    mut commands: Commands,
+) {
+    for (entity, mut path, _) in bullet_query.iter_mut() {
+        path.velocity -= 200.0;
+
+        commands.entity(entity).remove::<Hit>();
     }
 }
 
@@ -126,9 +137,11 @@ impl Plugin for BulletPlugin {
             .add_systems(Update, (
                 spawn_bullets,
                 check_for_collisions.before(move_bullets),
+                slow_down_bullets_that_hit,
                 move_bullets,
                 lower_bullet_velocity,
-                remove_stopped_bullets,
+                // prepare for panics if you don't do this
+                remove_stopped_bullets.after(check_for_collisions),
             ));
     }
 }

@@ -91,17 +91,12 @@ fn pursue_target(
 }
 
 fn hit_by_bullet(
-    mut enemy_query: Query<(Entity, &mut super::Health), With<BasicEnemy>>,
-    mut hitevent: EventReader<super::bullet::HitEvent>,
+    mut enemy_query: Query<(Entity, &mut super::Health, &super::bullet::Hit), With<BasicEnemy>>,
+    mut commands: Commands,
 ) {
-    let hit_events: Vec<Entity> = hitevent.read().map(|ev| ev.0).collect();
-
-    for (entity, mut health) in enemy_query.iter_mut() {
-        if !hit_events.contains(&entity) {
-            continue;
-        }
-
+    for (entity, mut health, _) in enemy_query.iter_mut() {
         health.0 = 0.0;
+        commands.entity(entity).remove::<super::bullet::Hit>();
     }
 }
 

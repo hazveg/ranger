@@ -1,20 +1,17 @@
 use bevy::prelude::*;
 use ranger_physics::AABB;
-use crate::actor::bullet::HitEvent;
 
 const DEBUG: bool = true;
 
 
 pub fn debug(
-    bounding_box_query: Query<(Entity, &AABB)>,
-    mut hitevent: EventReader<HitEvent>,
+    bounding_box_query: Query<(&AABB, Option<&crate::actor::bullet::Hit>)>,
     mut gizmos: Gizmos,
 ) {
-    let hit_events: Vec<Entity> = hitevent.read().map(|ev| ev.0).collect();
-    for (entity, bounding_box) in bounding_box_query.iter() {
-        let color = match hit_events.contains(&entity) {
-            true => Color::RED,
-            false => Color::GREEN,
+    for (bounding_box, hit) in bounding_box_query.iter() {
+        let color = match hit {
+            Some(_) => Color::RED,
+            None => Color::GREEN,
         };
 
         bounding_box.outline(&mut gizmos, color);
