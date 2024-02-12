@@ -43,7 +43,7 @@ fn spawn_bullets(
         crate::common::Path::r#static(
             &player_query.single().translation,
             &res_cursor_coordinates.0,
-            2000.0,
+            6000.0,
         ),
         SpriteBundle {
             sprite: Sprite {
@@ -61,7 +61,7 @@ fn spawn_bullets(
 
 pub fn check_for_collisions(
     bullet_query: Query<(&crate::common::Path, &mut Transform), With<Bullet>>,
-    actor_query: Query<(Entity, &AABB)>,
+    actor_query: Query<(Entity, &AABB), Without<super::player::Player>>,
     mut hit_event: EventWriter<HitEvent>,
     res_time: Res<Time>,
 ) {
@@ -126,7 +126,7 @@ impl Plugin for BulletPlugin {
             .insert_resource(ShootCooldown(0.0))
             .add_systems(Update, (
                 spawn_bullets,
-                check_for_collisions,
+                check_for_collisions.before(move_bullets),
                 move_bullets,
                 lower_bullet_velocity,
                 remove_stopped_bullets,

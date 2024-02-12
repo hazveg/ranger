@@ -83,17 +83,55 @@ impl AABB {
     // Thank the lord I don't have to do any collision resolution... yet
     // Update: I envy you.
     // Update2: FUCK
+    // Update3: fuck that resolution bullshit, i had to copy this code from https://www.youtube.com/watch?v=3vONlLYtHUE&t=0s, i sure as fuck am not torturing myself with that shit too.
+    
+    /// x = true, y = false;
+    fn clip_lines(&self, axis: bool, current: Vec3, next: Vec3) -> bool {
+        let self_sides = self.sides();
+
+        let mut f_low;
+        let mut f_high;
+        
+        match axis {
+            true => {
+                f_low = (self_sides.left - current.x) / (next.x - current.x);
+                f_high = (self_sides.right - current.x) / (next.x - current.x);
+            },
+            false => {
+                f_low = (self_sides.bottom - current.y) / (next.y - current.y);
+                f_high = (self_sides.top - current.y) / (next.y - current.y);
+            },
+        }
+
+        if f_high < f_low {
+            std::mem::swap(&mut f_low, &mut f_high)
+        }
+
+        if f_high < 0.0 {
+            return false;
+        }
+
+        if f_low > 1.0 {
+            return false;
+        }
+
+        if f32::max(0.0, f_low) > f32::min(1.0, f_high) {
+            return false;
+        }
+
+        true
+    }
+
     pub fn intersect_line(&self, current: Vec3, next: Vec3) -> bool {
-        let this = self.sides();
+        if !self.clip_lines(true, current, next) {
+            return false;
+        }
 
-        let scale = Vec2::new(1.0 / next.x, 1.0 / next.y);
-        let signs = Vec2::new(scale.x.signum(), scale.y.signum());
+        if !self.clip_lines(false, current, next) {
+            return false;
+        }
 
-        let near_time = Vec2::new(
-            (self.point.x - signs.x * ())
-        );
-
-        false
+        true
     }
 }
 
