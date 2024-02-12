@@ -74,7 +74,6 @@ pub fn check_for_collisions(
             }
             
             hit_event.send(HitEvent(entity));
-            break;
         }
     }
 }
