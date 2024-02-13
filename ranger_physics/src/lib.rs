@@ -110,7 +110,7 @@ impl AABB {
         gizmos.line(this.c, this.d, color);
         gizmos.line(this.d, this.a, color);
     }
-
+    //https://blog.hamaluik.ca/posts/simple-aabb-collision-using-minkowski-difference/
     fn minkowski(&self, other: &AABB) -> AABB {
         AABB {
             point: other.point,
@@ -131,6 +131,9 @@ impl AABB {
 
         minkowski.point_collision(self.point)
     }
+
+    // TODO:
+    // https://blog.hamaluik.ca/posts/swept-aabb-collision-using-minkowski-difference/
 
     // Thank the lord I don't have to do any collision resolution... yet
     // Update: I envy you.

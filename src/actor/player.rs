@@ -38,7 +38,7 @@ fn move_player(
 
     let mut movement = Vec3::ZERO;
     let mut player_path = player_query.single_mut();
-
+    
     if res_keyboard_input.pressed(KeyCode::W) { movement.y += player_path.velocity }
     if res_keyboard_input.pressed(KeyCode::A) { movement.x -= player_path.velocity }
     if res_keyboard_input.pressed(KeyCode::S) { movement.y -= player_path.velocity }
