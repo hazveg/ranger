@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use ranger_physics::AABB;
+use ranger_physics::{AABB, Path};
 
 #[derive(Component)]
 pub struct Player;
@@ -15,7 +15,7 @@ fn spawn_player(
         Player,
         AABB::new(Vec3::ZERO, PLAYER_SIZE),
         crate::actor::Health(100.0),
-        crate::common::Path::new(200.0),
+        Path::new(200.0),
         SpriteBundle {
             sprite: Sprite {
                 custom_size: Some(PLAYER_SIZE),
@@ -28,8 +28,9 @@ fn spawn_player(
 }
 
 fn move_player(
-    mut player_query: Query<&mut crate::common::Path, With<Player>>,
+    mut player_query: Query<&mut Path, With<Player>>,
     res_keyboard_input: Res<Input<KeyCode>>,
+    res_time: Res<Time>,
 ) {
     if let Err(_) = player_query.get_single() {
         return;
@@ -43,7 +44,7 @@ fn move_player(
     if res_keyboard_input.pressed(KeyCode::S) { movement.y -= player_path.velocity }
     if res_keyboard_input.pressed(KeyCode::D) { movement.x += player_path.velocity }
 
-    player_path.movement = movement;
+    player_path.movement = movement * res_time.delta_seconds();
 }
 
 fn rotate_player_to_cursor(

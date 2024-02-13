@@ -1,5 +1,36 @@
 use bevy::prelude::*;
 
+#[derive(Component, Clone, Copy)]
+pub struct Path {
+    pub movement: Vec3,
+    pub velocity: f32,
+}
+
+impl Path {
+    pub fn new(velocity: f32) -> Self {
+        Path {
+            movement: Vec3::ZERO,
+            velocity,
+        }
+    }
+
+    pub fn steering(&mut self, origin: &Vec3, destination: &Vec3, delta_time: f32) {
+        let desired_velocity = (*destination - *origin).normalize_or_zero() * self.velocity;
+
+        self.movement = (desired_velocity - origin.normalize_or_zero()) * delta_time;
+    }
+    
+    // HOPEFULLY TEMPORARY SOLUTION FOR BULLETS
+    pub fn r#static(origin: &Vec3, destination: &Vec3, velocity: f32) -> Self {
+        let desired_velocity = (*destination - *origin).normalize_or_zero() * velocity;
+
+        Self {
+            movement: desired_velocity - origin.normalize_or_zero(),
+            velocity: 1.0,
+        }
+    }
+}
+
 struct Points {
     pub a: Vec3,
     pub b: Vec3,
@@ -80,10 +111,32 @@ impl AABB {
         gizmos.line(this.d, this.a, color);
     }
 
+    fn minkowski(&self, other: &AABB) -> AABB {
+        AABB {
+            point: other.point,
+            width: self.width + other.width,
+            height: self.height + other.height,
+        }
+    }
+
+    fn point_collision(&self, point: Vec3) -> bool {
+        let self_sides = self.sides();
+
+        point.x > self_sides.left && point.x < self_sides.right &&
+        point.y < self_sides.top && point.y > self_sides.bottom
+    }
+
+    pub fn static_static(&self, other: &AABB) -> bool {
+        let minkowski = self.minkowski(&other);
+
+        minkowski.point_collision(self.point)
+    }
+
     // Thank the lord I don't have to do any collision resolution... yet
     // Update: I envy you.
     // Update2: FUCK
     // Update3: fuck that resolution bullshit, i had to copy this code from https://www.youtube.com/watch?v=3vONlLYtHUE&t=0s, i sure as fuck am not torturing myself with that shit too.
+    // Update4: I changed my mind lol
     
     /// x = true, y = false;
     fn clip_lines(&self, axis: bool, current: Vec3, next: Vec3) -> bool {

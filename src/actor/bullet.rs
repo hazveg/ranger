@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use ranger_physics::AABB;
+use ranger_physics::{AABB, Path};
 
 #[derive(Component)]
 pub struct Bullet;
@@ -39,7 +39,7 @@ fn spawn_bullets(
     commands.spawn((
         Bullet,
         BulletDropoff(0.0),
-        crate::common::Path::r#static(
+        Path::r#static(
             &player_query.single().translation,
             &res_cursor_coordinates.0,
             6000.0,
@@ -59,7 +59,7 @@ fn spawn_bullets(
 }
 
 pub fn check_for_collisions(
-    bullet_query: Query<(Entity, &crate::common::Path, &mut Transform), With<Bullet>>,
+    bullet_query: Query<(Entity, &Path, &mut Transform), With<Bullet>>,
     actor_query: Query<(Entity, &AABB), Without<super::player::Player>>,
     mut commands: Commands,
     res_time: Res<Time>,
@@ -79,7 +79,7 @@ pub fn check_for_collisions(
 }
 
 fn slow_down_bullets_that_hit(
-    mut bullet_query: Query<(Entity, &mut crate::common::Path, &Hit), With<Bullet>>,
+    mut bullet_query: Query<(Entity, &mut Path, &Hit), With<Bullet>>,
     mut commands: Commands,
 ) {
     for (entity, mut path, _) in bullet_query.iter_mut() {
@@ -91,7 +91,7 @@ fn slow_down_bullets_that_hit(
 
 // hopefully only a temporary measure
 fn move_bullets(
-    mut bullet_query: Query<(&crate::common::Path, &mut Transform), With<Bullet>>,
+    mut bullet_query: Query<(&Path, &mut Transform), With<Bullet>>,
     res_time: Res<Time>,
 ) {
     for (path, mut transform) in bullet_query.iter_mut() {
@@ -100,7 +100,7 @@ fn move_bullets(
 }
 
 fn lower_bullet_velocity(
-    mut bullet_query: Query<(&mut crate::common::Path, &mut BulletDropoff), With<Bullet>>,
+    mut bullet_query: Query<(&mut Path, &mut BulletDropoff), With<Bullet>>,
     res_time: Res<Time>,
 ) {
     for (mut path, mut bullet_dropoff) in bullet_query.iter_mut() {
@@ -115,7 +115,7 @@ fn lower_bullet_velocity(
 }
 
 fn remove_stopped_bullets(
-    bullet_query: Query<(&crate::common::Path, Entity), With<Bullet>>,
+    bullet_query: Query<(&Path, Entity), With<Bullet>>,
     mut commands: Commands,
 ) {
     for (path, entity) in bullet_query.iter() {

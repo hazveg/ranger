@@ -1,5 +1,5 @@
 use bevy::{prelude::*, window::PrimaryWindow};
-use ranger_physics::AABB;
+use ranger_physics::{AABB, Path};
 
 pub mod player;
 pub mod basic_enemy;
@@ -10,14 +10,13 @@ struct Health(f32);
 
 pub fn move_actors(
     mut actor_query: Query<(
-        &crate::common::Path,
+        &Path,
         &mut Transform,
         &mut AABB,
     )>,
-    res_time: Res<Time>,
 ) {
     for (path, mut transform, mut aabb) in actor_query.iter_mut() {
-        transform.translation += path.movement * res_time.delta_seconds();
+        transform.translation += path.movement;
         aabb.point = transform.translation;
     }
 }
