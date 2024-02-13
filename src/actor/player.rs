@@ -39,12 +39,13 @@ fn move_player(
     let mut movement = Vec3::ZERO;
     let mut player_path = player_query.single_mut();
     
-    if res_keyboard_input.pressed(KeyCode::W) { movement.y += player_path.velocity }
-    if res_keyboard_input.pressed(KeyCode::A) { movement.x -= player_path.velocity }
-    if res_keyboard_input.pressed(KeyCode::S) { movement.y -= player_path.velocity }
-    if res_keyboard_input.pressed(KeyCode::D) { movement.x += player_path.velocity }
-
-    player_path.movement = movement * res_time.delta_seconds();
+    if res_keyboard_input.pressed(KeyCode::W) { movement.y += 1.0 }
+    if res_keyboard_input.pressed(KeyCode::A) { movement.x -= 1.0 }
+    if res_keyboard_input.pressed(KeyCode::S) { movement.y -= 1.0 }
+    if res_keyboard_input.pressed(KeyCode::D) { movement.x += 1.0 }
+    
+    // this was retardedly easy lol
+    player_path.movement = movement.normalize_or_zero() * player_path.velocity * res_time.delta_seconds();
 }
 
 fn rotate_player_to_cursor(
