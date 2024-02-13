@@ -23,6 +23,9 @@ fn detect_actor_collisions(
                 (true, true) => if let Some(correction) = aabb0.static_static(aabb1) {
                     commands.entity(entity).insert(Correction(correction));
                 },
+                (false, false) => if let Some(correction) = aabb0.dynamic_dynamic(path0.movement, aabb1, path1.movement) {
+                    commands.entity(entity).insert(Correction(correction));
+                },
                 _ => {}
             }
         }
