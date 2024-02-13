@@ -165,7 +165,7 @@ impl AABB {
         let relative_motion = self_movement - other_movement;
 
         if let Some(f) = minkowski.get_line_intersect_factor(self.point, relative_motion) {
-            return Some(self_movement * f);
+            dbg!(&f);
         }
 
         None
