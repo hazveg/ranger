@@ -110,6 +110,7 @@ impl AABB {
         gizmos.line(this.c, this.d, color);
         gizmos.line(this.d, this.a, color);
     }
+
     //https://blog.hamaluik.ca/posts/simple-aabb-collision-using-minkowski-difference/
     fn minkowski(&self, other: &AABB) -> AABB {
         AABB {
@@ -126,10 +127,36 @@ impl AABB {
         point.y < self_sides.top && point.y > self_sides.bottom
     }
 
-    pub fn static_static(&self, other: &AABB) -> bool {
+    /// This detects and corrects, which is why the return value is an option
+    /// It's up to the user wether they wanna actually use the correction or not.
+    pub fn static_static(&self, other: &AABB) -> Option<Vec3> {
         let minkowski = self.minkowski(&other);
 
-        minkowski.point_collision(self.point)
+        if !minkowski.point_collision(self.point) {
+            return None;
+        }
+        
+        let minkowski_sides = minkowski.sides();
+
+        let mut minimum_distance = (self.point.x - minkowski_sides.left).abs();
+        let mut bounds_point = Vec3::new(minkowski_sides.left, self.point.y, self.point.z);
+
+        if (minkowski_sides.right - self.point.x).abs() < minimum_distance {
+            minimum_distance = (minkowski_sides.right - self.point.x).abs();
+            bounds_point = Vec3::new(minkowski_sides.right, self.point.y, self.point.z);
+        }
+
+        if (minkowski_sides.top - self.point.y).abs() < minimum_distance {
+            minimum_distance = (minkowski_sides.top - self.point.y).abs();
+            bounds_point = Vec3::new(self.point.x, minkowski_sides.top, self.point.z);
+        }
+
+        if (minkowski_sides.bottom - self.point.y).abs() < minimum_distance {
+            // minimum_distance = (minkowski_sides.bottom - self.point.y).abs();
+            bounds_point = Vec3::new(self.point.x, minkowski_sides.bottom, self.point.z);
+        }
+        
+        Some(bounds_point)
     }
 
     // TODO:

@@ -3,24 +3,44 @@ use ranger_physics::{AABB, Path};
 
 const DEBUG: bool = true;
 
+#[derive(Component)]
+struct Correction(pub Vec3);
 
 fn detect_actor_collisions(
-    actor_query: Query<(&AABB, &Path)>,
+    actor_query: Query<(Entity, &AABB, &Path)>,
+    mut commands: Commands,
 ) {
-    let actors: Vec<(&AABB, &Path)> = actor_query.iter().collect();
+    let actors: Vec<(Entity, &AABB, &Path)> = actor_query.iter().collect();
 
     for i in 0..actors.len() {
-        let (aabb0, path0) = actors[i];
+        let (entity, aabb0, path0) = actors[i];
 
         for j in i+1..actors.len() {
-            let (aabb1, path1) = actors[j];
+            let (_, aabb1, path1) = actors[j];
 
             let (state0, state1) = (path0.movement == Vec3::ZERO, path1.movement == Vec3::ZERO);
             match (state0, state1) {
-                (true, true) => println!("{:?}", aabb0.static_static(aabb1)),
+                (true, true) => if let Some(correction) = aabb0.static_static(aabb1) {
+                    commands.entity(entity).insert(Correction(correction));
+                },
                 _ => {}
             }
         }
+    }
+}
+
+fn correct_actor_collisions(
+    mut actor_query: Query<(Entity, &mut Transform, &Correction)>,
+    mut commands: Commands,
+    res_time: Res<Time>,
+) {
+    for (entity, mut transform, correction) in actor_query.iter_mut() {
+        // i want them to gently push eachother apart, this'll be visible when enemies spawn
+        // by applying the correction directly to the transform, we're not fucking with any
+        // movement states
+        transform.translation += correction.0 * res_time.delta_seconds();
+
+        commands.entity(entity).remove::<Correction>();
     }
 }
 
@@ -47,7 +67,8 @@ impl Plugin for PhysicsPlugin {
             app
                 .add_systems(Update, (
                     debug.after(crate::actor::move_actors),
-                    detect_actor_collisions,
+                    detect_actor_collisions.before(correct_actor_collisions),
+                    correct_actor_collisions.before(crate::actor::move_actors),
                 ));
         }
     }
