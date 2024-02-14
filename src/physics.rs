@@ -14,18 +14,24 @@ fn detect_actor_collisions(
 
     for i in 0..actors.len() {
         let (entity, aabb0, path0) = actors[i];
+        
+        if path0.movement != Vec3::ZERO {
+            continue;
+        }
 
         for j in i+1..actors.len() {
             let (_, aabb1, path1) = actors[j];
 
-            let (state0, state1) = (path0.movement == Vec3::ZERO, path1.movement == Vec3::ZERO);
-            match (state0, state1) {
-                (true, true) => if let Some(correction) = aabb0.static_static(aabb1) {
-                    commands.entity(entity).insert(Correction(correction));
-                },
-                (false, false) => if None == aabb0.dynamic_dynamic(path0.movement, aabb1, path1.movement) {},
-                _ => {}
+            if path1.movement != Vec3::ZERO {
+                continue;
             }
+
+            let correction = match aabb0.static_static(aabb1) {
+                None => continue,
+                Some(correction) => correction,
+            };
+
+            commands.entity(entity).insert(Correction(correction));
         }
     }
 }

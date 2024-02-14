@@ -159,27 +159,6 @@ impl AABB {
         Some(bounds_point)
     }
 
-    pub fn dynamic_dynamic(&self, self_movement: Vec3, other: &AABB, other_movement: Vec3) -> Option<Vec3> {
-        let minkowski = self.minkowski(other);
-
-        let relative_motion = self_movement - other_movement;
-
-        if let Some(f) = minkowski.get_line_intersect_factor(self.point, relative_motion) {
-            dbg!(&f);
-        }
-
-        None
-    }
-
-    // TODO:
-    // https://blog.hamaluik.ca/posts/swept-aabb-collision-using-minkowski-difference/
-
-    // Thank the lord I don't have to do any collision resolution... yet
-    // Update: I envy you.
-    // Update2: FUCK
-    // Update3: fuck that resolution bullshit, i had to copy this code from https://www.youtube.com/watch?v=3vONlLYtHUE&t=0s, i sure as fuck am not torturing myself with that shit too.
-    // Update4: I changed my mind lol
-    
     /// x = true, y = false;
     fn clip_lines(&self, axis: bool, current: Vec3, next: Vec3) -> (bool, f32) {
         let self_sides = self.sides();
@@ -215,18 +194,6 @@ impl AABB {
         }
         
         (true, f_low)
-    }
-
-    fn get_line_intersect_factor(&self, current: Vec3, next: Vec3) -> Option<f32> {
-        let (colliding_x, f_x) = self.clip_lines(true, current, next);
-        let (colliding_y, f_y) = self.clip_lines(false, current, next);
-
-        match (colliding_x, colliding_y) {
-            (true, false) => Some(f_x),
-            (false, true) => Some(f_y),
-            (true, true) => Some(f_x),
-            _ => None,
-        }
     }
 
     pub fn intersect_line(&self, current: Vec3, next: Vec3) -> bool {
