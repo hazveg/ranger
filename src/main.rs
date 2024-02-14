@@ -3,7 +3,7 @@ use bevy::prelude::*;
 mod common;
 mod actor;
 mod interface;
-mod physics;
+mod world;
 
 fn init(
     mut commands: Commands,
@@ -28,7 +28,7 @@ fn main() {
         )
         .add_plugins((
             actor::ActorPlugin,
-            physics::PhysicsPlugin,
+            world::WorldPlugin,
         ))
         .insert_resource(common::DebugTimer(Timer::from_seconds(1.5, TimerMode::Repeating)))
         .insert_resource(interface::CursorCoordinates(Vec3::ZERO))
