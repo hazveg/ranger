@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use ranger_physics::*;
 
 mod physics;
 mod map;
@@ -6,7 +7,7 @@ mod map;
 fn init_grid(
     mut commands: Commands,
 ) {
-    commands.spawn(map::Grid::new(20, 20));
+    commands.spawn(map::Grid::new(9, 9));
 }
 
 fn debug_grid(
@@ -18,6 +19,26 @@ fn debug_grid(
     }
 }
 
+// TODO: actually add the component to the entity
+fn set_field_ids(
+    actor_query: Query<(Entity, &Transform, Option<&AABB>), With<Path>>,
+    grid_query: Query<&map::Grid>,
+    mut commands: Commands,
+) {
+    if let Err(_) = grid_query.get_single() {
+        return;
+    }
+
+    let grid = grid_query.single();
+
+    for (entity, transform, aabb) in actor_query.iter() {
+        match aabb {
+            Some(aabb) => println!("{:?}", grid.assign_aabb(aabb)),
+            None => println!("{:?}", grid.assign_point(&transform.translation)),
+        }
+    }
+}
+
 pub struct WorldPlugin;
 
 impl Plugin for WorldPlugin {
@@ -25,6 +46,6 @@ impl Plugin for WorldPlugin {
         app
             .add_plugins(physics::PhysicsPlugin)
             .add_systems(Startup, init_grid)
-            .add_systems(Update, debug_grid);
+            .add_systems(Update, (debug_grid, set_field_ids));
     }
 }
