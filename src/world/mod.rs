@@ -43,9 +43,15 @@ pub struct WorldPlugin;
 
 impl Plugin for WorldPlugin {
     fn build(&self, app: &mut App) {
+        if !crate::DEBUG {
+            app
+                .add_systems(Update, (
+                    debug_grid,
+                ));
+        }
         app
             .add_plugins(physics::PhysicsPlugin)
             .add_systems(Startup, init_grid)
-            .add_systems(Update, (debug_grid, set_field_coords));
+            .add_systems(Update, set_field_coords);
     }
 }

@@ -151,12 +151,12 @@ impl AABB {
             bounds_point = Vec3::new(self.point.x, minkowski_sides.top, self.point.z);
         }
 
-        if (minkowski_sides.bottom - self.point.y).abs() < minimum_distance {
-            // minimum_distance = (minkowski_sides.bottom - self.point.y).abs();
+        if (self.point.y - minkowski_sides.bottom).abs() < minimum_distance {
+            //minimum_distance = (minkowski_sides.bottom - self.point.y).abs();
             bounds_point = Vec3::new(self.point.x, minkowski_sides.bottom, self.point.z);
         }
-        
-        Some(bounds_point)
+
+        Some(self.point - bounds_point)
     }
 
     /// x = true, y = false;

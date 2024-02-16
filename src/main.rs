@@ -5,6 +5,8 @@ mod actor;
 mod interface;
 mod world;
 
+const DEBUG: bool = true;
+
 fn init(
     mut commands: Commands,
 ) {

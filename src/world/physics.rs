@@ -1,26 +1,25 @@
 use bevy::prelude::*;
 use ranger_physics::{AABB, Path};
 
-const DEBUG: bool = true;
 
 #[derive(Component)]
-struct Correction(pub Vec3);
+struct Correction(pub Option<Vec3>);
 
 fn detect_actor_collisions(
-    actor_query: Query<(Entity, &AABB, &Path)>,
+    actor_query: Query<(Entity, &AABB, &Path), Without<Correction>>,
     mut commands: Commands,
 ) {
     let actors: Vec<(Entity, &AABB, &Path)> = actor_query.iter().collect();
 
     for i in 0..actors.len() {
-        let (entity, aabb0, path0) = actors[i];
+        let (entity0, aabb0, path0) = actors[i];
         
         if path0.movement != Vec3::ZERO {
             continue;
         }
 
         for j in i+1..actors.len() {
-            let (_, aabb1, path1) = actors[j];
+            let (entity1, aabb1, path1) = actors[j];
 
             if path1.movement != Vec3::ZERO {
                 continue;
@@ -31,7 +30,8 @@ fn detect_actor_collisions(
                 Some(correction) => correction,
             };
 
-            commands.entity(entity).insert(Correction(correction));
+            commands.entity(entity0).insert(Correction(Some(correction)));
+            commands.entity(entity1).insert(Correction(None));
         }
     }
 }
@@ -39,13 +39,14 @@ fn detect_actor_collisions(
 fn correct_actor_collisions(
     mut actor_query: Query<(Entity, &mut Transform, &Correction)>,
     mut commands: Commands,
-    res_time: Res<Time>,
 ) {
     for (entity, mut transform, correction) in actor_query.iter_mut() {
         // i want them to gently push eachother apart, this'll be visible when enemies spawn
         // by applying the correction directly to the transform, we're not fucking with any
         // movement states
-        transform.translation += correction.0 * res_time.delta_seconds();
+        if let Some(correction) = correction.0 {
+            transform.translation += correction;
+        }
 
         commands.entity(entity).remove::<Correction>();
     }
@@ -70,13 +71,17 @@ pub struct PhysicsPlugin;
 
 impl Plugin for PhysicsPlugin {
     fn build(&self, app: &mut App) {
-        if DEBUG {
+        if crate::DEBUG {
             app
                 .add_systems(Update, (
                     debug.after(crate::actor::move_actors),
-                    detect_actor_collisions.before(correct_actor_collisions),
-                    correct_actor_collisions.before(crate::actor::move_actors),
                 ));
         }
+
+        app
+            .add_systems(Update, (
+                detect_actor_collisions.before(correct_actor_collisions),
+                correct_actor_collisions.before(crate::actor::move_actors),
+            ));
     }
 }
