@@ -21,17 +21,19 @@ fn detect_actor_collisions(
         for j in i+1..actors.len() {
             let (entity1, aabb1, path1) = actors[j];
 
-            if path1.movement != Vec3::ZERO {
-                continue;
-            }
-
-            let correction = match aabb0.static_static(aabb1) {
-                None => continue,
-                Some(correction) => correction,
+            let correction = match path1.movement == Vec3::ZERO {
+                true => match aabb0.static_static(aabb1) {
+                    None => continue,
+                    Some(correction) => correction,
+                },
+                false => match aabb1.dynamic_static(path1.movement, aabb0) {
+                    None => continue,
+                    Some(correction) => correction,
+                }
             };
 
-            commands.entity(entity0).insert(Correction(Some(correction)));
-            commands.entity(entity1).insert(Correction(None));
+            commands.entity(entity0).insert(Correction(None));
+            commands.entity(entity1).insert(Correction(Some(correction)));
         }
     }
 }
@@ -41,11 +43,8 @@ fn correct_actor_collisions(
     mut commands: Commands,
 ) {
     for (entity, mut transform, correction) in actor_query.iter_mut() {
-        // i want them to gently push eachother apart, this'll be visible when enemies spawn
-        // by applying the correction directly to the transform, we're not fucking with any
-        // movement states
         if let Some(correction) = correction.0 {
-            transform.translation += correction;
+            transform.translation = correction;
         }
 
         commands.entity(entity).remove::<Correction>();

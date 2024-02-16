@@ -127,6 +127,63 @@ impl AABB {
         point.y < self_sides.top && point.y > self_sides.bottom
     }
 
+    /// Here for moving/static and static/static, given a point; it returns a point which is
+    /// derived from the minimum distance required to get out of the bounding box.
+    ///
+    /// Said bounding box is intended to be a minkowski one.
+    ///
+    /// +-----------+
+    /// |           |
+    /// |--*        |
+    /// |           |
+    /// +-----------+
+    fn get_bounds_point_from_minimum_distance(&self, point: Vec3) -> Vec3 {
+        let minkowski_sides = self.sides();
+
+        let mut minimum_distance = (point.x - minkowski_sides.left).abs();
+        let mut bounds_point = Vec3::new(minkowski_sides.left, point.y, point.z);
+
+        if (minkowski_sides.right - point.x).abs() < minimum_distance {
+            minimum_distance = (minkowski_sides.right - point.x).abs();
+            bounds_point = Vec3::new(minkowski_sides.right, point.y, point.z);
+        }
+
+        if (minkowski_sides.top - point.y).abs() < minimum_distance {
+            minimum_distance = (minkowski_sides.top - point.y).abs();
+            bounds_point = Vec3::new(point.x, minkowski_sides.top, point.z);
+        }
+
+        if (point.y - minkowski_sides.bottom).abs() < minimum_distance {
+            //minimum_distance = (minkowski_sides.bottom - point.y).abs();
+            bounds_point = Vec3::new(point.x, minkowski_sides.bottom, point.z);
+        }
+        
+        bounds_point
+    }
+
+    pub fn dynamic_static(&self, self_movement: Vec3, other: &AABB) -> Option<Vec3> {
+        let minkowski = self.minkowski(&other);
+        let movement_destination = self.point + self_movement;
+
+        if !minkowski.point_collision(movement_destination) {
+            return None;
+        }
+
+        let f_x = match minkowski.clip_lines(true, self.point, self_movement) {
+            None => return None,
+            Some(f) => f,
+        };
+
+        let f_y = match minkowski.clip_lines(true, self.point, self_movement) {
+            None => return None,
+            Some(f) => f,
+        };
+
+        let b = movement_destination - self.point;
+
+        Some(self.point + b * f_x.min(f_y))
+    }
+
     /// This detects and corrects, which is why the return value is an option
     /// It's up to the user wether they wanna actually use the correction or not.
     pub fn static_static(&self, other: &AABB) -> Option<Vec3> {
@@ -136,31 +193,11 @@ impl AABB {
             return None;
         }
         
-        let minkowski_sides = minkowski.sides();
-
-        let mut minimum_distance = (self.point.x - minkowski_sides.left).abs();
-        let mut bounds_point = Vec3::new(minkowski_sides.left, self.point.y, self.point.z);
-
-        if (minkowski_sides.right - self.point.x).abs() < minimum_distance {
-            minimum_distance = (minkowski_sides.right - self.point.x).abs();
-            bounds_point = Vec3::new(minkowski_sides.right, self.point.y, self.point.z);
-        }
-
-        if (minkowski_sides.top - self.point.y).abs() < minimum_distance {
-            minimum_distance = (minkowski_sides.top - self.point.y).abs();
-            bounds_point = Vec3::new(self.point.x, minkowski_sides.top, self.point.z);
-        }
-
-        if (self.point.y - minkowski_sides.bottom).abs() < minimum_distance {
-            //minimum_distance = (minkowski_sides.bottom - self.point.y).abs();
-            bounds_point = Vec3::new(self.point.x, minkowski_sides.bottom, self.point.z);
-        }
-
-        Some(self.point - bounds_point)
+        Some(minkowski.get_bounds_point_from_minimum_distance(self.point))
     }
 
     /// x = true, y = false;
-    fn clip_lines(&self, axis: bool, current: Vec3, next: Vec3) -> (bool, f32) {
+    fn clip_lines(&self, axis: bool, current: Vec3, next: Vec3) -> Option<f32> {
         let self_sides = self.sides();
 
         let mut f_low;
@@ -182,26 +219,26 @@ impl AABB {
         }
 
         if f_high < 0.0 {
-            return (false, 0.0);
+            return None;
         }
 
         if f_low > 1.0 {
-            return (false, 0.0);
+            return None;
         }
 
         if f32::max(0.0, f_low) > f32::min(1.0, f_high) {
-            return (false, 0.0);
+            return None;
         }
         
-        (true, f_low)
+        Some(f_low)
     }
 
     pub fn intersect_line(&self, current: Vec3, next: Vec3) -> bool {
-        if !self.clip_lines(true, current, next).0 {
+        if self.clip_lines(true, current, next).is_none() {
             return false;
         }
 
-        if !self.clip_lines(false, current, next).0 {
+        if self.clip_lines(false, current, next).is_none() {
             return false;
         }
 
