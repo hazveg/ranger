@@ -33,8 +33,8 @@ pub fn set_field_coords(
 
     for (entity, transform, aabb) in actor_query.iter() {
         match aabb {
-            Some(aabb) => commands.entity(entity).insert(self::map::FieldCoordinates(grid.assign_aabb(aabb))),
-            None => commands.entity(entity).insert(self::map::FieldCoordinates(grid.assign_point(&transform.translation))),
+            Some(aabb) => commands.entity(entity).insert(self::map::FieldCoordinates(grid.associate_aabb(aabb))),
+            None => commands.entity(entity).insert(self::map::FieldCoordinates(grid.associate_point(&transform.translation))),
         };
     }
 }

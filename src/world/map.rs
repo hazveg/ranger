@@ -12,13 +12,12 @@ pub struct Grid {
 }
 
 impl Grid {
-    // i can't let this go, i'll keep it for a rainy day
-    /*fn field(&self, row: usize, column: usize) -> &Field {
+    fn field(&self, row: usize, column: usize) -> &Field {
         let index = ((row-1) * self.columns + column) - 1;
 
         &self.fields[index]
-    }*/
-    
+    }
+
     fn count(&self, row: &mut usize, column: &mut usize) {
         if *column < self.columns {
             *column += 1;
@@ -32,12 +31,12 @@ impl Grid {
     /// Always >= 1, if 0; not in grid
     /// Already returns a collection, as AABBs can be in multiple fields at a time.
     /// Accordingly if you get a vector containing only 0, you can act as with points
-    pub fn assign_aabb(&self, bounding_box: &AABB) -> Vec<(usize, usize)> {
+    pub fn associate_aabb(&self, bounding_box: &AABB) -> Vec<(usize, usize)> {
         let mut containing_fields = vec![];
         let mut row = 1;
         let mut column = 1;
         for field in self.fields.iter() {
-            if bounding_box.static_static(&AABB::new(field.point, Vec2::new(DEFAULT_FIELD_WIDTH, DEFAULT_FIELD_HEIGHT))).is_none() {
+            if bounding_box.static_static(&field.as_aabb()).is_none() {
                 self.count(&mut row, &mut column);
                 continue;
             }
@@ -56,11 +55,11 @@ impl Grid {
     /// Returns a field index for a point
     /// Always >= 1, if 0; not in grid
     /// *or my algorithm is shit, that's possible as well*
-    pub fn assign_point(&self, point: &Vec3) -> Vec<(usize, usize)> {
+    pub fn associate_point(&self, point: &Vec3) -> Vec<(usize, usize)> {
         let mut row = 1;
         let mut column = 1;
         for field in self.fields.iter() {
-            if !field.point_intersection(*point) {
+            if !field.as_aabb().point_collision(*point) {
                 self.count(&mut row, &mut column);
                 continue;
             }
@@ -104,9 +103,8 @@ struct Field {
 }
 
 impl Field {
-    fn point_intersection(&self, point: Vec3) -> bool {
-        point.x > self.point.x - DEFAULT_FIELD_WIDTH / 2.0 && point.x < self.point.x + DEFAULT_FIELD_WIDTH / 2.0 &&
-        point.y < self.point.y + DEFAULT_FIELD_HEIGHT / 2.0 && point.y > self.point.y - DEFAULT_FIELD_HEIGHT / 2.0
+    fn as_aabb(&self) -> AABB {
+        AABB::new(self.point, Vec2::new(DEFAULT_FIELD_WIDTH, DEFAULT_FIELD_HEIGHT))
     }
 }
 

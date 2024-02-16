@@ -141,7 +141,9 @@ impl Plugin for BulletPlugin {
                 move_bullets,
                 lower_bullet_velocity,
                 // prepare for panics if you don't do this
-                remove_stopped_bullets.after(check_for_collisions),
+                remove_stopped_bullets
+                    .after(check_for_collisions)
+                    .after(crate::world::set_field_coords),
             ));
     }
 }

@@ -25,7 +25,7 @@ fn spawn(
         BasicEnemy,
         AABB::new(Vec3::ZERO, BASIC_ENEMY_SIZE),
         crate::actor::Health(50.0),
-        Path::new(0.0),
+        Path::new(150.0),
         Target::new(None),
         SpriteBundle {
             sprite: Sprite {
@@ -121,16 +121,16 @@ pub struct EnemyPlugin;
 impl Plugin for EnemyPlugin {
     fn build(&self, app: &mut App) {
         app
-            .insert_resource(EnemySpawnTimer(Timer::from_seconds(1.0, TimerMode::Once)))
+            .insert_resource(EnemySpawnTimer(Timer::from_seconds(1.0, TimerMode::Repeating)))
             .add_systems(Update, (
                 spawn,
                 detect_player,
                 focus_on_target,
                 pursue_target,
-                hit_by_bullet
+                hit_by_bullet,
+                despawn
                     .after(super::bullet::check_for_collisions)
                     .after(crate::world::set_field_coords),
-                despawn,
             ));
     }
 }

@@ -120,7 +120,7 @@ impl AABB {
         }
     }
 
-    fn point_collision(&self, point: Vec3) -> bool {
+    pub fn point_collision(&self, point: Vec3) -> bool {
         let self_sides = self.sides();
 
         point.x > self_sides.left && point.x < self_sides.right &&
