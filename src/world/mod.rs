@@ -20,7 +20,7 @@ fn debug_grid(
 }
 
 // TODO: actually add the component to the entity
-fn set_field_ids(
+pub fn set_field_coords(
     actor_query: Query<(Entity, &Transform, Option<&AABB>), With<Path>>,
     grid_query: Query<&map::Grid>,
     mut commands: Commands,
@@ -33,9 +33,9 @@ fn set_field_ids(
 
     for (entity, transform, aabb) in actor_query.iter() {
         match aabb {
-            Some(aabb) => println!("{:?}", grid.assign_aabb(aabb)),
-            None => println!("{:?}", grid.assign_point(&transform.translation)),
-        }
+            Some(aabb) => commands.entity(entity).insert(self::map::FieldCoordinates(grid.assign_aabb(aabb))),
+            None => commands.entity(entity).insert(self::map::FieldCoordinates(grid.assign_point(&transform.translation))),
+        };
     }
 }
 
@@ -46,6 +46,6 @@ impl Plugin for WorldPlugin {
         app
             .add_plugins(physics::PhysicsPlugin)
             .add_systems(Startup, init_grid)
-            .add_systems(Update, (debug_grid, set_field_ids));
+            .add_systems(Update, (debug_grid, set_field_coords));
     }
 }

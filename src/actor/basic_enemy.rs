@@ -127,7 +127,9 @@ impl Plugin for EnemyPlugin {
                 detect_player,
                 focus_on_target,
                 pursue_target,
-                hit_by_bullet.after(super::bullet::check_for_collisions),
+                hit_by_bullet
+                    .after(super::bullet::check_for_collisions)
+                    .after(crate::world::set_field_coords),
                 despawn,
             ));
     }
