@@ -180,7 +180,9 @@ impl AABB {
         };
 
         let b = movement_destination - self.point;
-
+        
+        //println!("{} + {} * {}.min({})", self.point, b, f_x, f_y);
+        //dbg!(self.point + b * f_x.min(f_y));
         Some(self.point + b * f_x.min(f_y))
     }
 

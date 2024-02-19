@@ -3,7 +3,7 @@ use ranger_physics::{AABB, Path};
 
 
 #[derive(Component)]
-struct Correction(pub Option<Vec3>);
+struct Correction(Option<Vec3>);
 
 fn detect_actor_collisions(
     actor_query: Query<(Entity, &AABB, &Path), Without<Correction>>,
@@ -22,7 +22,7 @@ fn detect_actor_collisions(
             let (entity1, aabb1, path1) = actors[j];
 
             let correction = match path1.movement == Vec3::ZERO {
-                true => match aabb0.static_static(aabb1) {
+                true => match aabb1.static_static(aabb0) {
                     None => continue,
                     Some(correction) => correction,
                 },

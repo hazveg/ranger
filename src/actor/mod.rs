@@ -10,14 +10,15 @@ struct Health(f32);
 
 pub fn move_actors(
     mut actor_query: Query<(
-        &Path,
+        &mut Path,
         &mut Transform,
         &mut AABB,
     )>,
 ) {
-    for (path, mut transform, mut aabb) in actor_query.iter_mut() {
+    for (mut path, mut transform, mut aabb) in actor_query.iter_mut() {
         transform.translation += path.movement;
         aabb.point = transform.translation;
+        path.movement = Vec3::ZERO;
     }
 }
 
