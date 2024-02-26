@@ -29,7 +29,7 @@ fn spawn_player(
 
 fn move_player(
     mut player_query: Query<&mut Path, With<Player>>,
-    res_keyboard_input: Res<Input<KeyCode>>,
+    res_keyboard_input: Res<ButtonInput<KeyCode>>,
     res_time: Res<Time>,
 ) {
     if let Err(_) = player_query.get_single() {
@@ -39,10 +39,10 @@ fn move_player(
     let mut movement = Vec3::ZERO;
     let mut player_path = player_query.single_mut();
     
-    if res_keyboard_input.pressed(KeyCode::W) { movement.y += 1.0 }
-    if res_keyboard_input.pressed(KeyCode::A) { movement.x -= 1.0 }
-    if res_keyboard_input.pressed(KeyCode::S) { movement.y -= 1.0 }
-    if res_keyboard_input.pressed(KeyCode::D) { movement.x += 1.0 }
+    if res_keyboard_input.pressed(KeyCode::KeyW) { movement.y += 1.0 }
+    if res_keyboard_input.pressed(KeyCode::KeyA) { movement.x -= 1.0 }
+    if res_keyboard_input.pressed(KeyCode::KeyS) { movement.y -= 1.0 }
+    if res_keyboard_input.pressed(KeyCode::KeyD) { movement.x += 1.0 }
     
     // this was retardedly easy lol
     player_path.movement = movement.normalize_or_zero() * player_path.velocity * res_time.delta_seconds();

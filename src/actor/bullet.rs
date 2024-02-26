@@ -17,7 +17,7 @@ pub struct Hit;
 fn spawn_bullets(
     player_query: Query<&Transform, With<crate::actor::player::Player>>,
     mut commands: Commands,
-    res_mouse_input: Res<Input<MouseButton>>,
+    res_mouse_input: Res<ButtonInput<MouseButton>>,
     res_cursor_coordinates: Res<crate::interface::CursorCoordinates>,
     mut res_shoot_cooldown: ResMut<ShootCooldown>,
     res_asset_server: Res<AssetServer>,
