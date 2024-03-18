@@ -62,13 +62,13 @@ pub fn check_for_collisions(
     bullet_query: Query<(Entity, &Path, &mut Transform), With<Bullet>>,
     actor_query: Query<(Entity, &AABB), Without<super::player::Player>>,
     mut commands: Commands,
-    res_time: Res<Time>,
 ) {
     for (b_entity, path, transform) in bullet_query.iter() {
-        let movement_vector = transform.translation + path.movement * res_time.delta_seconds();
+        // apparently delta timing it messes with the normalization, so i will refrain from that
+        let movement_vector = transform.translation + path.movement;
 
         for (a_entity, aabb) in actor_query.iter() {
-            if !aabb.intersect_line(transform.translation, movement_vector) {
+            if aabb.raycast(transform.translation, movement_vector).is_none() {
                 continue;
             }
 

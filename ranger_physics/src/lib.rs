@@ -102,6 +102,13 @@ impl AABB {
         )
     }
 
+    pub fn point_collision(&self, point: Vec3) -> bool {
+        let self_sides = self.sides();
+
+        point.x > self_sides.left && point.x < self_sides.right &&
+        point.y < self_sides.top && point.y > self_sides.bottom
+    }
+
     pub fn outline(&self, gizmos: &mut Gizmos, color: Color) {
         let this = self.corners();
 
@@ -119,12 +126,50 @@ impl AABB {
             height: self.height + other.height,
         }
     }
-
-    pub fn point_collision(&self, point: Vec3) -> bool {
+    
+    /// https://gdbooks.gitbooks.io/3dcollisions/content/Chapter3/raycast_aabb.html
+    ///
+    /// It's a less stupid version of the previous ray casting code.
+    ///     |   /
+    ///     |  /|
+    /// ----+-x-+----
+    ///     |/  |
+    /// ----x---+----
+    ///    /|   |
+    ///   / |   |
+    /// It'll get you the Xs in the illustration and return the lesser of the two when they collide
+    /// Honestly if you need a good explanation, just refer to the article at the very start of
+    /// this documentation
+    pub fn raycast(&self, origin: Vec3, destination: Vec3) -> Option<f32> {
+        // we get the sides and the normalized direction of our movement vector
         let self_sides = self.sides();
+        let direction = destination.normalize_or_zero();
+        
+        // we solve for the point in time where our ray intersects left/right for x and bottom/top
+        // for y respectively
+        let t_min_x = (self_sides.left - origin.x) / direction.x;
+        let t_max_x = (self_sides.right - origin.x) / direction.x;
+        let t_min_y = (self_sides.bottom - origin.y) / direction.y;
+        let t_max_y = (self_sides.top - origin.y) / direction.y;
+        
+        // with this we get the maximum t_min and the minimum t_max
+        let t_min = (t_min_x.min(t_max_x)).max(t_min_x.min(t_max_x));
+        let t_max = (t_min_x.max(t_max_x)).min(t_min_y.max(t_max_y));
+        
+        // run some checks on the values
+        if t_max < 0.0 {
+            return None;
+        }
 
-        point.x > self_sides.left && point.x < self_sides.right &&
-        point.y < self_sides.top && point.y > self_sides.bottom
+        if t_min > t_max {
+            return None;
+        }
+
+        if t_min < 0.0 {
+            return Some(t_max);
+        }
+
+        return Some(t_min);
     }
 
     /// Here for moving/static and static/static, given a point; it returns a point which is
@@ -161,31 +206,6 @@ impl AABB {
         bounds_point
     }
 
-    pub fn dynamic_static(&self, self_movement: Vec3, other: &AABB) -> Option<Vec3> {
-        let minkowski = self.minkowski(&other);
-        let movement_destination = self.point + self_movement;
-
-        if !minkowski.point_collision(movement_destination) {
-            return None;
-        }
-
-        let f_x = match minkowski.clip_lines(true, self.point, self_movement) {
-            None => return None,
-            Some(f) => f,
-        };
-
-        let f_y = match minkowski.clip_lines(true, self.point, self_movement) {
-            None => return None,
-            Some(f) => f,
-        };
-
-        let b = movement_destination - self.point;
-        
-        //println!("{} + {} * {}.min({})", self.point, b, f_x, f_y);
-        //dbg!(self.point + b * f_x.min(f_y));
-        Some(self.point + b * f_x.min(f_y))
-    }
-
     /// This detects and corrects, which is why the return value is an option
     /// It's up to the user wether they wanna actually use the correction or not.
     pub fn static_static(&self, other: &AABB) -> Option<Vec3> {
@@ -196,55 +216,6 @@ impl AABB {
         }
         
         Some(minkowski.get_bounds_point_from_minimum_distance(self.point))
-    }
-
-    /// x = true, y = false;
-    fn clip_lines(&self, axis: bool, current: Vec3, next: Vec3) -> Option<f32> {
-        let self_sides = self.sides();
-
-        let mut f_low;
-        let mut f_high;
-        
-        match axis {
-            true => {
-                f_low = (self_sides.left - current.x) / (next.x - current.x);
-                f_high = (self_sides.right - current.x) / (next.x - current.x);
-            },
-            false => {
-                f_low = (self_sides.bottom - current.y) / (next.y - current.y);
-                f_high = (self_sides.top - current.y) / (next.y - current.y);
-            },
-        }
-
-        if f_high < f_low {
-            std::mem::swap(&mut f_low, &mut f_high)
-        }
-
-        if f_high < 0.0 {
-            return None;
-        }
-
-        if f_low > 1.0 {
-            return None;
-        }
-
-        if f32::max(0.0, f_low) > f32::min(1.0, f_high) {
-            return None;
-        }
-        
-        Some(f_low)
-    }
-
-    pub fn intersect_line(&self, current: Vec3, next: Vec3) -> bool {
-        if self.clip_lines(true, current, next).is_none() {
-            return false;
-        }
-
-        if self.clip_lines(false, current, next).is_none() {
-            return false;
-        }
-
-        true
     }
 }
 
