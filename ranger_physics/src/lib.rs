@@ -15,8 +15,7 @@ impl Path {
     }
 
     pub fn is_moving(&self) -> bool {
-        //println!("{}, {}, {}", self.movement.x, self.movement.y, self.movement.z);
-        self.movement.x != 0.0 && self.movement.y != 0.0 && self.movement.z != 0.0
+        self.movement.x != 0.0 || self.movement.y != 0.0 || self.movement.z != 0.0
     }
 
     pub fn steering(&mut self, origin: &Vec3, destination: &Vec3) {
@@ -230,13 +229,11 @@ impl AABB {
         if let Some(_) = minkowski.raycast(self.point, my_path.movement) {
             return true;
         }
-        println!("no collision ):");
 
         false
     }
 
     pub fn is_colliding(first_aabb: &AABB, first_path: &Path, second_aabb: &AABB, second_path: &Path) -> bool {
-        println!("first: {}, second: {}", first_path.movement, second_path.movement);
         match (first_path.is_moving(), second_path.is_moving()) {
             (true, false) => {
                 return first_aabb.dynamic_static(first_path, second_aabb);
@@ -249,10 +246,9 @@ impl AABB {
                 return false;
             },
             (false, false) => {
-                //println!("{}, {}", first_path.movement, second_path.movement);
-                /*if let Some(_) = first_aabb.static_static(second_aabb) {
+                if let Some(_) = first_aabb.static_static(second_aabb) {
                     return true;
-                }*/
+                }
             },
         }
 

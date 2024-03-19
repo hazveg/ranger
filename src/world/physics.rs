@@ -26,14 +26,10 @@ pub fn detect_actor_collisions(
     for i in 0..actors.len() {
         let (first_aabb, first_path) = actors[i];
 
-        for j in 0..actors.len() {
-            if j == i {
-                continue;
-            }
-
+        for j in i+1..actors.len() {
             let (second_aabb, second_path) = actors[j];
 
-            println!("first: {}, second: {}", first_path.movement, second_path.movement);
+            //println!("before they go in: {}, {}", first_path.movement, second_path.movement);
             if let true = AABB::is_colliding(first_aabb, first_path, second_aabb, second_path) {
                 println!("yippie");
             }
@@ -52,6 +48,6 @@ impl Plugin for PhysicsPlugin {
                     debug.after(crate::actor::move_actors),
                 ));
         }
-        app.add_systems(Update, detect_actor_collisions);
+        app.add_systems(Update, detect_actor_collisions.before(crate::actor::move_actors));
     }
 }
