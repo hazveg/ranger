@@ -14,10 +14,15 @@ impl Path {
         }
     }
 
-    pub fn steering(&mut self, origin: &Vec3, destination: &Vec3, delta_time: f32) {
+    pub fn is_moving(&self) -> bool {
+        //println!("{}, {}, {}", self.movement.x, self.movement.y, self.movement.z);
+        self.movement.x != 0.0 && self.movement.y != 0.0 && self.movement.z != 0.0
+    }
+
+    pub fn steering(&mut self, origin: &Vec3, destination: &Vec3) {
         let desired_velocity = (*destination - *origin).normalize_or_zero() * self.velocity;
 
-        self.movement = (desired_velocity - origin.normalize_or_zero()) * delta_time;
+        self.movement = desired_velocity - origin.normalize_or_zero();
     }
     
     // HOPEFULLY TEMPORARY SOLUTION FOR BULLETS
@@ -209,13 +214,49 @@ impl AABB {
     /// This detects and corrects, which is why the return value is an option
     /// It's up to the user wether they wanna actually use the correction or not.
     pub fn static_static(&self, other: &AABB) -> Option<Vec3> {
-        let minkowski = self.minkowski(&other);
+        let minkowski = self.minkowski(other);
 
         if !minkowski.point_collision(self.point) {
             return None;
         }
         
         Some(minkowski.get_bounds_point_from_minimum_distance(self.point))
+    }
+
+    fn dynamic_static(&self, my_path: &Path, other: &AABB) -> bool {
+        // minkowski is created at the other box's position. we then raycast our movement vector
+        // and if we get something back from the raycast, we'll collide.
+        let minkowski = self.minkowski(other);
+        if let Some(_) = minkowski.raycast(self.point, my_path.movement) {
+            return true;
+        }
+        println!("no collision ):");
+
+        false
+    }
+
+    pub fn is_colliding(first_aabb: &AABB, first_path: &Path, second_aabb: &AABB, second_path: &Path) -> bool {
+        println!("first: {}, second: {}", first_path.movement, second_path.movement);
+        match (first_path.is_moving(), second_path.is_moving()) {
+            (true, false) => {
+                return first_aabb.dynamic_static(first_path, second_aabb);
+            },
+            (false, true) => {
+                return second_aabb.dynamic_static(first_path, first_aabb);
+            },
+            (true, true) => {
+                // probably won't bother doing this, ever.
+                return false;
+            },
+            (false, false) => {
+                //println!("{}, {}", first_path.movement, second_path.movement);
+                /*if let Some(_) = first_aabb.static_static(second_aabb) {
+                    return true;
+                }*/
+            },
+        }
+
+        false
     }
 }
 

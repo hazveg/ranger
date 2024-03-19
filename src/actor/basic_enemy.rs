@@ -25,7 +25,7 @@ fn spawn(
         BasicEnemy,
         AABB::new(Vec3::ZERO, BASIC_ENEMY_SIZE),
         crate::actor::Health(50.0),
-        Path::new(150.0),
+        Path::new(0.0),
         Target::new(None),
         SpriteBundle {
             sprite: Sprite {
@@ -77,7 +77,6 @@ fn focus_on_target(
 
 fn pursue_target(
     mut enemy_query: Query<(&Target, &Transform, &mut Path), With<BasicEnemy>>,
-    res_time: Res<Time>,
 ) {
     for (enemies_target, transform, mut path) in enemy_query.iter_mut() {
         if !enemies_target.has_target() {
@@ -87,7 +86,6 @@ fn pursue_target(
         path.steering(
             &transform.translation,
             &enemies_target.point.unwrap(),
-            res_time.delta_seconds(),
         );
     }
 }
@@ -121,7 +119,7 @@ pub struct EnemyPlugin;
 impl Plugin for EnemyPlugin {
     fn build(&self, app: &mut App) {
         app
-            .insert_resource(EnemySpawnTimer(Timer::from_seconds(2.0, TimerMode::Repeating)))
+            .insert_resource(EnemySpawnTimer(Timer::from_seconds(2.0, TimerMode::Once)))
             .add_systems(Update, (
                 spawn,
                 detect_player,

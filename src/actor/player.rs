@@ -30,7 +30,6 @@ fn spawn_player(
 fn move_player(
     mut player_query: Query<&mut Path, With<Player>>,
     res_keyboard_input: Res<ButtonInput<KeyCode>>,
-    res_time: Res<Time>,
 ) {
     if let Err(_) = player_query.get_single() {
         return;
@@ -45,7 +44,7 @@ fn move_player(
     if res_keyboard_input.pressed(KeyCode::KeyD) { movement.x += 1.0 }
     
     // this was retardedly easy lol
-    player_path.movement = movement.normalize_or_zero() * player_path.velocity * res_time.delta_seconds();
+    player_path.movement = movement.normalize_or_zero() * player_path.velocity;
 }
 
 fn rotate_player_to_cursor(

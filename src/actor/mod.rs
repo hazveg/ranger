@@ -14,9 +14,10 @@ pub fn move_actors(
         &mut Transform,
         &mut AABB,
     )>,
+    res_time: Res<Time>,
 ) {
     for (mut path, mut transform, mut aabb) in actor_query.iter_mut() {
-        transform.translation += path.movement;
+        transform.translation += path.movement * res_time.delta_seconds();
         aabb.point = transform.translation;
         path.movement = Vec3::ZERO;
     }
